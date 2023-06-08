@@ -1,4 +1,4 @@
-export class Tracker{
+export class GridTransformer{
     static headersAsKeys<A>(x:[Array<string>, ...Array<Array<A>>]):Record<string, Array<A>>{
         const headers = x[0]
         const body = x.slice(1) as Array<Array<A>>
