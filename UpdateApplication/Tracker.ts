@@ -9,5 +9,11 @@ export class Tracker{
         const rows = x.slice(1) as Array<Array<A>>
         return rows.map(row => Object.fromEntries(row.map((element, index) => [headers[index], element])))
     }
+
+    static updateBlanks<A, B>(originalRows:Array<Array<A>>, newRows:Array<Array<B>>): Array<Array<A|B>>{
+        return originalRows.map((row, rowIndex) => {
+            return row.map((value, columnIndex) => value === "" ? newRows[rowIndex][columnIndex] : value)
+        })
+    }
 }
     

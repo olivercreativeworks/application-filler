@@ -45,4 +45,40 @@ describe("Testing Tracker", () => {
             expect(Tracker.getStubValues([["headerA", "headerB"], [2, "happy"]])).toEqual([{"headerA":2, "headerB":"happy"}])
         })
     })
+
+    describe("Return updated 2d array", () =>{
+        describe("Should update empty cells", () => {
+            test("One cell / non-empty cell as update value", () => {
+                expect(Tracker.updateBlanks([[""]], [["hello"]])).toEqual([["hello"]])
+            })
+            test("One cell / empty cell as update value", () => {
+                expect(Tracker.updateBlanks([[""]], [[""]])).toEqual([[""]])
+            })
+        
+            test("Multiple cells in one row", () => {
+                expect(Tracker.updateBlanks([["",""]], [["hello", "world"]])).toEqual([["hello", "world"]])
+            })
+            test("Multiple cells across multiple rows", ()=>{
+                expect(Tracker.updateBlanks([[""],[""]], [["hello"], ["world"]])).toEqual([["hello"], ["world"]])
+            })
+        })
+    })
+    describe("Should not update non-empty cells", ()=>{
+        test("One cell", () => {
+            expect(Tracker.updateBlanks([["a"]], [["hello"]])).toEqual([["a"]])
+        })
+        test("Multiple cells in one row", () => {
+            expect(Tracker.updateBlanks([["a", "b"]], [["hello", "world"]])).toEqual([["a", "b"]])
+        })
+        test("Multiple cells across multiple rows", () => {
+            expect(Tracker.updateBlanks([["a"],["b"]], [["hello"], ["world"]])).toEqual([["a"],["b"]])
+        })
+        test("One empty cell and one non-empty cell in the same row", () => {
+            expect(Tracker.updateBlanks([["" , "b"]], [["hello", "world"]])).toEqual([["hello", "b"]])
+            expect(Tracker.updateBlanks([["a", ""]], [["hello", "world"]])).toEqual([["a", "world"]])
+        })
+        test("One empty cell and one non-empty cell in multiple rows", () => {
+            expect(Tracker.updateBlanks([["a",""],["", "b"]], [["hello", "hello"], ["world", "world"]])).toEqual([["a", "hello"],["world","b"]])
+        })
+    })
 })
