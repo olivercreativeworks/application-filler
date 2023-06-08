@@ -106,5 +106,17 @@ describe("Testing Tracker", () => {
         test("Update subarray is shorter than original subarray at same index", () => {
             expect(() => GridTransformer.updateBlanks([["", ""]], [["hello"]])).toThrowError()
         })
-    })    
+    })
+    describe("Should update values that match predicate", () => {
+        test("Replaces blanks", () => {
+            expect(GridTransformer.updateBlanks([[""]], [["a"]], val => val === "")).toEqual([["a"]])
+
+        })
+        test("Replaces numbers", () => {
+            expect(GridTransformer.updateBlanks([[3]], [["a"]], val => typeof val === "number")).toEqual([["a"]])
+        })
+        test("Replaces numbers and does not replace blanks", () => {
+            expect(GridTransformer.updateBlanks([[3, "", 4]], [["a", "b", "c"]], val => typeof val === "number")).toEqual([["a", "", "c"]])
+        })
+    })   
 })
