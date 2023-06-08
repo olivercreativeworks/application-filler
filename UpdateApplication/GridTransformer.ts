@@ -11,11 +11,11 @@ export class GridTransformer{
     }
 
     static updateBlanks<A, B>(originalRows:Array<Array<A>>, newRows:Array<Array<B>>, predicate:(arg:A) => boolean = (value:A) => value === ""): Array<Array<A|B>>{
-        if(lengthsAreDifferent(originalRows, newRows)) { return throwArraysMustHaveSameLength() }
+        if(lengthsAreDifferent(originalRows, newRows)) { return throwArraysMustHaveSameLength(originalRows, newRows) }
         return originalRows.map((row, rowIndex) => updateBlanksInRow(row, newRows[rowIndex], predicate))
 
         function updateBlanksInRow<A, B>(originalRow:Array<A>, newRow:Array<B>, predicate:(arg:A) => boolean): Array<A|B>{
-            if(lengthsAreDifferent(originalRow, newRow)) { return throwArraysMustHaveSameLength() }
+            if(lengthsAreDifferent(originalRow, newRow)) { return throwArraysMustHaveSameLength(originalRow, newRow) }
             return originalRow.map((value, columnIndex) => predicate(value) ? newRow[columnIndex] : value)
         }
 
@@ -23,8 +23,8 @@ export class GridTransformer{
             return arr1.length != arr2.length
         }
 
-        function throwArraysMustHaveSameLength():never{
-            throw new Error("Mismatched array lengths.")
+        function throwArraysMustHaveSameLength(...mismatchedArrays:Array<unknown>):never{
+            throw new Error(`Mismatched array lengths. Make sure each input array has the same length.\n${mismatchedArrays?.join("\n")}`.trim())
         }
     }
 }
