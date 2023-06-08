@@ -89,5 +89,22 @@ describe("Testing Tracker", () => {
             expect(originalArray).toEqual(originalArray)
             expect(updateArray).toEqual(updateArray)
         })
+    })
+        
+    describe("Should throw error if input arrays have different lengths shapes", () =>{
+        test("Update array is shorter than original", () => {
+            expect(() => Tracker.updateBlanks([[""], [""]], [["hello"]])).toThrowError()
+        })
+        test("Update array is longer than original", () =>{
+            expect(() => Tracker.updateBlanks([[""]], [["hello"], ["world"]])).toThrowError()
+        })          
+    })
+    describe("Should throw error if subarray lengths are inconpatible", () =>{
+        test("Update subarray is longer than original subarray at same index", () => {
+            expect(() => Tracker.updateBlanks([["", ""]], [["hello", "world", "!"]])).toThrowError()
+        })
+        test("Update subarray is shorter than original subarray at same index", () => {
+            expect(() => Tracker.updateBlanks([["", ""]], [["hello"]])).toThrowError()
+        })
     })    
 })

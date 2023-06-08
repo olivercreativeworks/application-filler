@@ -11,9 +11,21 @@ export class Tracker{
     }
 
     static updateBlanks<A, B>(originalRows:Array<Array<A>>, newRows:Array<Array<B>>): Array<Array<A|B>>{
-        return originalRows.map((row, rowIndex) => {
-            return row.map((value, columnIndex) => value === "" ? newRows[rowIndex][columnIndex] : value)
-        })
+        if(originalRows.length != newRows.length) { return throwArraysMustHaveSameLength() }
+        return originalRows.map((row, rowIndex) => updateBlanksInRow(row, newRows[rowIndex]))
+
+        function updateBlanksInRow<A, B>(originalRow:Array<A>, newRow:Array<B>): Array<A|B>{
+            if(originalRow.length != newRow.length) { return throwArraysMustHaveSameLength() }
+            return originalRow.map((value, columnIndex) => replaceBlankValue(value, newRow[columnIndex]))
+        }
+
+        function replaceBlankValue<A,B>(value:A, newValue:B): A|B{
+            return value === "" ? newValue : value
+        }
+
+        function throwArraysMustHaveSameLength():never{
+            throw new Error("Mismatched array lengths.")
+        }
     }
 }
     
