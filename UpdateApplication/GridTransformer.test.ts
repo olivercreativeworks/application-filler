@@ -49,43 +49,43 @@ describe("Testing Tracker", () => {
     describe("Return updated 2d array", () =>{
         describe("Should update empty cells", () => {
             test("One cell / non-empty cell as update value", () => {
-                expect(GridTransformer.updateBlanks([[""]], [["hello"]])).toEqual([["hello"]])
+                expect(GridTransformer.updateGrid([[""]], [["hello"]])).toEqual([["hello"]])
             })
             test("One cell / empty cell as update value", () => {
-                expect(GridTransformer.updateBlanks([[""]], [[""]])).toEqual([[""]])
+                expect(GridTransformer.updateGrid([[""]], [[""]])).toEqual([[""]])
             })
         
             test("Multiple cells in one row", () => {
-                expect(GridTransformer.updateBlanks([["",""]], [["hello", "world"]])).toEqual([["hello", "world"]])
+                expect(GridTransformer.updateGrid([["",""]], [["hello", "world"]])).toEqual([["hello", "world"]])
             })
             test("Multiple cells across multiple rows", ()=>{
-                expect(GridTransformer.updateBlanks([[""],[""]], [["hello"], ["world"]])).toEqual([["hello"], ["world"]])
+                expect(GridTransformer.updateGrid([[""],[""]], [["hello"], ["world"]])).toEqual([["hello"], ["world"]])
             })
         })
     })
     describe("Should not update non-empty cells", ()=>{
         test("One cell", () => {
-            expect(GridTransformer.updateBlanks([["a"]], [["hello"]])).toEqual([["a"]])
+            expect(GridTransformer.updateGrid([["a"]], [["hello"]])).toEqual([["a"]])
         })
         test("Multiple cells in one row", () => {
-            expect(GridTransformer.updateBlanks([["a", "b"]], [["hello", "world"]])).toEqual([["a", "b"]])
+            expect(GridTransformer.updateGrid([["a", "b"]], [["hello", "world"]])).toEqual([["a", "b"]])
         })
         test("Multiple cells across multiple rows", () => {
-            expect(GridTransformer.updateBlanks([["a"],["b"]], [["hello"], ["world"]])).toEqual([["a"],["b"]])
+            expect(GridTransformer.updateGrid([["a"],["b"]], [["hello"], ["world"]])).toEqual([["a"],["b"]])
         })
         test("One empty cell and one non-empty cell in the same row", () => {
-            expect(GridTransformer.updateBlanks([["" , "b"]], [["hello", "world"]])).toEqual([["hello", "b"]])
-            expect(GridTransformer.updateBlanks([["a", ""]], [["hello", "world"]])).toEqual([["a", "world"]])
+            expect(GridTransformer.updateGrid([["" , "b"]], [["hello", "world"]])).toEqual([["hello", "b"]])
+            expect(GridTransformer.updateGrid([["a", ""]], [["hello", "world"]])).toEqual([["a", "world"]])
         })
         test("One empty cell and one non-empty cell in multiple rows", () => {
-            expect(GridTransformer.updateBlanks([["a",""],["", "b"]], [["hello", "hello"], ["world", "world"]])).toEqual([["a", "hello"],["world","b"]])
+            expect(GridTransformer.updateGrid([["a",""],["", "b"]], [["hello", "hello"], ["world", "world"]])).toEqual([["a", "hello"],["world","b"]])
         })
     })
     describe("Should not modify inputs", () =>{
         test("Does not modify input array",() => {
             const originalArray = [[""]]
             const updateArray = [["hello"]]
-            expect(GridTransformer.updateBlanks(originalArray, updateArray)).toEqual([["hello"]])
+            expect(GridTransformer.updateGrid(originalArray, updateArray)).toEqual([["hello"]])
             expect(originalArray).toEqual(originalArray)
             expect(updateArray).toEqual(updateArray)
         })
@@ -93,30 +93,30 @@ describe("Testing Tracker", () => {
         
     describe("Should throw error if input arrays have different lengths shapes", () =>{
         test("Update array is shorter than original", () => {
-            expect(() => GridTransformer.updateBlanks([[""], [""]], [["hello"]])).toThrowError()
+            expect(() => GridTransformer.updateGrid([[""], [""]], [["hello"]])).toThrowError()
         })
         test("Update array is longer than original", () =>{
-            expect(() => GridTransformer.updateBlanks([[""]], [["hello"], ["world"]])).toThrowError()
+            expect(() => GridTransformer.updateGrid([[""]], [["hello"], ["world"]])).toThrowError()
         })          
     })
     describe("Should throw error if subarray lengths are inconpatible", () =>{
         test("Update subarray is longer than original subarray at same index", () => {
-            expect(() => GridTransformer.updateBlanks([["", ""]], [["hello", "world", "!"]])).toThrowError()
+            expect(() => GridTransformer.updateGrid([["", ""]], [["hello", "world", "!"]])).toThrowError()
         })
         test("Update subarray is shorter than original subarray at same index", () => {
-            expect(() => GridTransformer.updateBlanks([["", ""]], [["hello"]])).toThrowError()
+            expect(() => GridTransformer.updateGrid([["", ""]], [["hello"]])).toThrowError()
         })
     })
     describe("Should update values that match predicate", () => {
         test("Replaces blanks", () => {
-            expect(GridTransformer.updateBlanks([[""]], [["a"]], val => val === "")).toEqual([["a"]])
+            expect(GridTransformer.updateGrid([[""]], [["a"]], val => val === "")).toEqual([["a"]])
 
         })
         test("Replaces numbers", () => {
-            expect(GridTransformer.updateBlanks([[3]], [["a"]], val => typeof val === "number")).toEqual([["a"]])
+            expect(GridTransformer.updateGrid([[3]], [["a"]], val => typeof val === "number")).toEqual([["a"]])
         })
         test("Replaces numbers and does not replace blanks", () => {
-            expect(GridTransformer.updateBlanks([[3, "", 4]], [["a", "b", "c"]], val => typeof val === "number")).toEqual([["a", "", "c"]])
+            expect(GridTransformer.updateGrid([[3, "", 4]], [["a", "b", "c"]], val => typeof val === "number")).toEqual([["a", "", "c"]])
         })
     })   
 })

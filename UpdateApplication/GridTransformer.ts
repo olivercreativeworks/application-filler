@@ -10,13 +10,17 @@ export class GridTransformer{
         return rows.map(row => Object.fromEntries(row.map((element, index) => [headers[index], element])))
     }
 
-    static updateBlanks<A, B>(originalRows:Array<Array<A>>, newRows:Array<Array<B>>, predicate:(arg:A) => boolean = (value:A) => value === ""): Array<Array<A|B>>{
+    static updateGrid<A, B>(originalRows:Array<Array<A>>, newRows:Array<Array<B>>, predicate?:(arg:A) => boolean): Array<Array<A|B>>{
         if(lengthsAreDifferent(originalRows, newRows)) { return throwArraysMustHaveSameLength(originalRows, newRows) }
-        return originalRows.map((row, rowIndex) => updateBlanksInRow(row, newRows[rowIndex], predicate))
+        return originalRows.map((row, rowIndex) => updateRow(row, newRows[rowIndex], predicate))
 
-        function updateBlanksInRow<A, B>(originalRow:Array<A>, newRow:Array<B>, predicate:(arg:A) => boolean): Array<A|B>{
+        function updateRow<A, B>(originalRow:Array<A>, newRow:Array<B>, predicate?:(arg:A) => boolean): Array<A|B>{
             if(lengthsAreDifferent(originalRow, newRow)) { return throwArraysMustHaveSameLength(originalRow, newRow) }
-            return originalRow.map((value, columnIndex) => predicate(value) ? newRow[columnIndex] : value)
+            return originalRow.map((value, columnIndex) => updateValue(value, newRow[columnIndex], predicate))
+        }
+
+        function updateValue<A, B>(originalValue:A, newValue:B, predicate:(arg:A) => boolean = (value:A) => value === ""):A|B{
+            return predicate(originalValue) ? newValue : originalValue
         }
 
         function lengthsAreDifferent(arr1:Array<unknown>, arr2:Array<unknown>):boolean{
