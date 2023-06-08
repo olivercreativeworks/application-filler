@@ -81,4 +81,13 @@ describe("Testing Tracker", () => {
             expect(Tracker.updateBlanks([["a",""],["", "b"]], [["hello", "hello"], ["world", "world"]])).toEqual([["a", "hello"],["world","b"]])
         })
     })
+    describe("Should not modify inputs", () =>{
+        test("Does not modify input array",() => {
+            const originalArray = [[""]]
+            const updateArray = [["hello"]]
+            expect(Tracker.updateBlanks(originalArray, updateArray)).toEqual([["hello"]])
+            expect(originalArray).toEqual(originalArray)
+            expect(updateArray).toEqual(updateArray)
+        })
+    })    
 })
