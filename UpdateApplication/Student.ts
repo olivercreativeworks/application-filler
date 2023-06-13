@@ -1,23 +1,22 @@
-export type Student ={
+type Student ={
     firstName:string
     lastName:string
     fullName:string
-    assessmentDate: Date
+    assessmentDate:string
     phone:string
     email:string
     employer:string
     job:string
-    inConstruction:boolean
-    hasOsha10Card:boolean
+    inConstruction:string
+    hasOsha10Card:string
     address:string
     borough:string
-    councilDistrict:number
-    isNychaResident:boolean
+    councilDistrict:string
+    isNychaResident:string
     development:string
-    hasValidId:boolean
+    hasValidId:string
     assessment:string
     id:string
     certificate:string
     osha30Card:string
 }
-
