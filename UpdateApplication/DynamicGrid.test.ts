@@ -53,8 +53,32 @@ describe("Dynamic Grid", () =>{
         })
     })
 
-    describe("Should throw error for invalid input", () => {
+    describe("Should not throw error for valid input", () => {
         test("More columns than headers", () => {
+            const values = [["", ""]]
+            const headers = {a:1}
+            const func = jest.fn(() => DynamicGrid.fromOneBasedHeaderIndex(values, headers))
+            func()
+            expect(func).toReturn()
+        })
+        test("Header indexes fall between first and last index (inclusive)", () => {
+            const values = [["", "", ""]]
+            const firstHeaders = {a:1}
+            const secondHeaders = {a:2}
+            const thirdHeaders = {a:3}
+            const func = jest.fn(() => {
+                DynamicGrid.fromOneBasedHeaderIndex(values, firstHeaders)
+                DynamicGrid.fromOneBasedHeaderIndex(values, secondHeaders)
+                DynamicGrid.fromOneBasedHeaderIndex(values, thirdHeaders)
+                return true
+            })
+            func()
+            expect(func).toReturn()
+        })
+    })
+
+    describe("Should throw error for invalid input", () => {
+        test("No headers", () => {
             const values = [[""]]
             const headers = {}
             expect(() => DynamicGrid.fromOneBasedHeaderIndex(values, headers)).toThrowError()

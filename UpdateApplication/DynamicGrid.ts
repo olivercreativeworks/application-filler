@@ -71,15 +71,15 @@ export class DynamicGrid<Row extends Record<string,unknown>>{
             return new Set(rowLengths).size === 1
         }
         
-        function thereIsAHeaderForEachColumn(row:Array<unknown>, headers:Headers<unknown>):boolean{
+        function thereIsAHeaderForEachColumn(row:Array<unknown>, headers:Headers<A>):boolean{
             const headerIndexValues = Object.values(headers)
             const headerIndexesSet = new Set(headerIndexValues)
             
-            const headerIndexesIncludeTheMinColumnIndex = headerIndexesSet.has(0)
-            const numberOfHeaderIndexesEqualsNumberOfColumns = headerIndexesSet.size === row.length
+            const headerIndexesFallWithinColumnIndexBounds = (Math.max(...headerIndexesSet) <= row.length - 1) && (Math.min(...headerIndexesSet) >= 0 )
+            const numberOfHeadersFallWithinNumberOfColumns = headerIndexesSet.size <= row.length && headerIndexesSet.size >= 1
             const headerIndexesAreUnique = headerIndexValues.length === headerIndexesSet.size
             
-            return headerIndexesIncludeTheMinColumnIndex && numberOfHeaderIndexesEqualsNumberOfColumns && headerIndexesAreUnique
+            return headerIndexesFallWithinColumnIndexBounds && numberOfHeadersFallWithinNumberOfColumns && headerIndexesAreUnique
         }
     }
 
