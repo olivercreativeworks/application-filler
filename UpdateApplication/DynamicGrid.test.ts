@@ -3,11 +3,11 @@ import { DynamicGrid } from "./DynamicGrid"
 describe("Dynamic Grid", () =>{
     describe("Should store 2d array in values property", () => {
         test("Can access values prop", () => {
-            expect(new DynamicGrid([["value1"], ["value2"]], {}).values).toEqual([["value1"], ["value2"]])
+            expect(DynamicGrid.fromOneBasedHeaderIndex([["value1"], ["value2"]], {a:1}).values).toEqual([["value1"], ["value2"]])
         })
 
         test("Values subarrays should be read only", () => {
-            const student = new DynamicGrid([["value1"], ["value2"]], {})
+            const student = DynamicGrid.fromOneBasedHeaderIndex([["value1"], ["value2"]], {a:1})
             student.values[0] = ["INVALID CHANGE"]
             expect(student.values).toEqual([["value1"], ["value2"]])
         })
@@ -38,7 +38,7 @@ describe("Dynamic Grid", () =>{
             type Name = {firstName:string, lastName:string, fullName:string}
             
             function createNameGrid<A extends Name>(grid:Array<Array<A[keyof A]>>, columnIndexes:{[k in keyof A]: number}):DynamicGrid<A>{
-                return DynamicGrid.fromZeroBasedHeaderIndex(grid, columnIndexes)
+                return DynamicGrid.of(grid, columnIndexes)
             }
 
             const headers = {firstName:0, lastName:1, fullName:2}
@@ -53,4 +53,53 @@ describe("Dynamic Grid", () =>{
         })
     })
 
+    describe("Should throw error for invalid input", () => {
+        test("More columns than headers", () => {
+            const values = [[""]]
+            const headers = {}
+            expect(() => DynamicGrid.fromOneBasedHeaderIndex(values, headers)).toThrowError()
+        })
+        test("More headers than columns / one row", () => {
+            const values = [[""]]
+            const headers = {a:1, b:2}
+            expect(() => DynamicGrid.fromOneBasedHeaderIndex(values, headers)).toThrowError()
+        })
+        test("More headers than columns / multiple rows", () => {
+            const values = [[""], [""]]
+            const headers = {a:1, b:2}
+            expect(() => DynamicGrid.fromOneBasedHeaderIndex(values, headers)).toThrowError()
+        })
+        test("Same value for different headers", () => {
+            const values = [["", ""], ["", ""]]
+            const headers = {a:1, b:1}
+            expect(() => DynamicGrid.fromOneBasedHeaderIndex(values, headers)).toThrowError()
+        } )
+        test("Header value is greater than the number of columns", () => {
+            const values = [[""]]
+            const oneBasedHeaderIndex = {a:2}
+            expect(() => DynamicGrid.fromOneBasedHeaderIndex(values, oneBasedHeaderIndex)).toThrowError()
+            
+            const zeroBasedHeaderIndex = {a:1}
+            expect(() => DynamicGrid.of(values, zeroBasedHeaderIndex)).toThrowError()
+        } )
+        test("Header value is smaller than the number of columns", () => {
+            const values = [[""]]
+            const oneBasedHeaderIndex = {a:0}
+            expect(() => DynamicGrid.fromOneBasedHeaderIndex(values, oneBasedHeaderIndex)).toThrowError()
+            
+            const zeroBasedHeaderIndex = {a:-1}
+            expect(() => DynamicGrid.of(values, zeroBasedHeaderIndex)).toThrowError()
+        } )
+        test("Rows have different number of columns", () => {
+            const values = [[""], ["", ""]]
+            const oneBasedHeaderIndex = {a: 1}
+            expect(() => DynamicGrid.fromOneBasedHeaderIndex(values, oneBasedHeaderIndex)).toThrowError()
+        })
+
+        test("Repeating header index values", () => {
+            const values = [[""]]
+            const headers = {a:1, b:1}
+            expect(() => DynamicGrid.fromOneBasedHeaderIndex(values, headers)).toThrowError()
+        })
+    })
 })
