@@ -20,9 +20,11 @@ function mapObjectValues<A extends string, B, C>(obj: Record<A, B>, fn:(arg:B) =
 }
 
 function fillAssessment(richTextStudent:MyGlobals.RichTextStudent):MyGlobals.RichText{
-    const assessment = DocumentApp.openByUrl(richTextStudent.assessment.url as string)
-    const student = mapObjectValues( richTextStudent, (richText) => richText.text)
-    Assessment.fillIn(student, assessment)
+    if(hasUrl(richTextStudent.assessment)){
+        const assessment = DocumentApp.openByUrl(richTextStudent.assessment.url)
+        const student = mapObjectValues( richTextStudent, (richText) => richText.text)
+        Assessment.fillIn(student, assessment)
+    }
     return richTextStudent.assessment
 }
 
