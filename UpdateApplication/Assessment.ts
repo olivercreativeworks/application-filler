@@ -1,5 +1,6 @@
 import { MyGlobals } from "./GLOBALS"
 import { Maybe } from "./Maybe"
+import { Utility } from "./Utility"
 
 interface AssessmentFields{
     firstName:string
@@ -61,12 +62,11 @@ export namespace Assessment{
 
 function getAssessments(maxNumberOfAssessmentsToGet: number = Infinity):Map<string, GoogleAppsScript.Drive.File>{
     const assessments = MyGlobals.getAssessmentFolder().getFiles()
-    const map = new Map() as Map<string, GoogleAppsScript.Drive.File>
-    while(assessments.hasNext() && map.size < maxNumberOfAssessmentsToGet){
-        const assessment = assessments.next()
-        map.set(assessment.getName().toUpperCase(), assessment)
+    return Utility.collect(assessments, addToMap, maxNumberOfAssessmentsToGet)
+    
+    function addToMap(assessment:GoogleAppsScript.Drive.File, map:Map<string, GoogleAppsScript.Drive.File>):Map<string, GoogleAppsScript.Drive.File>{
+        return new Map(map).set(assessment.getName().toUpperCase(), assessment)
     }
-    return map
 }
 
 function replaceFirstInstanceOfText(body:GoogleAppsScript.Document.Body, searchPattern:string, replacement:string):void{
