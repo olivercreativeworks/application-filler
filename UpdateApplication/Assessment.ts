@@ -45,11 +45,9 @@ export namespace Assessment{
         replaceFirstInstanceOfText(body, 'Job[^\\t\\n]*','Job/position: ' + student.job)
     }
     
-    export function retrieve(studentName:string): Maybe<GoogleAppsScript.Drive.File | undefined>{
-        const assessmentFolder = MyGlobals.getAssessmentFolder()
-        const fileName = studentName.toUpperCase()
-        const existingAssessment = assessmentFolder.getFilesByName(fileName)
-        return existingAssessment.hasNext() ?  Maybe.of(existingAssessment.next()) : Maybe.of(undefined)
+    export function retrieve():(studentName:string) => Maybe<GoogleAppsScript.Drive.File | undefined>{
+        const assessments = getAssessments()
+        return (studentName) => Maybe.of(assessments.get(studentName.toUpperCase()))
     }
 
     export function create(studentName:string):GoogleAppsScript.Drive.File {
@@ -59,6 +57,16 @@ export namespace Assessment{
         const newAssessment = assessmentTemplate.makeCopy(fileName, assessmentFolder)
         return newAssessment
     }
+}
+
+function getAssessments(maxNumberOfAssessmentsToGet: number = Infinity):Map<string, GoogleAppsScript.Drive.File>{
+    const assessments = MyGlobals.getAssessmentFolder().getFiles()
+    const map = new Map() as Map<string, GoogleAppsScript.Drive.File>
+    while(assessments.hasNext() && map.size < maxNumberOfAssessmentsToGet){
+        const assessment = assessments.next()
+        map.set(assessment.getName().toUpperCase(), assessment)
+    }
+    return map
 }
 
 function replaceFirstInstanceOfText(body:GoogleAppsScript.Document.Body, searchPattern:string, replacement:string):void{
