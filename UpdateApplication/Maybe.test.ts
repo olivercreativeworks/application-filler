@@ -72,6 +72,20 @@ describe("Maybe class", () => {
             expect(new Maybe("a").orElse(undefined)).toEqual("a")
             expect(new Maybe("a").orElse(null)).toEqual("a")
         })
-        
+    })
+    
+    describe("Should return result of function if value is null or undefined", () => {
+        test("Should return alternate value / stored value is null", () => {
+            expect(new Maybe(null).orElseGet(() => 2)).toEqual(2)
+            expect(new Maybe(undefined).orElseGet(() => 2)).toEqual(2)
+            expect(new Maybe(null).orElseGet(() => undefined)).toBeUndefined()
+            expect(new Maybe(undefined).orElseGet(() => null)).toBeNull()
+        })
+        test("Should return stored value / stored value is not null", () => {
+            expect(new Maybe(3).orElseGet(() => 2)).toEqual(3)
+            expect(new Maybe("a").orElseGet(() => 2)).toEqual("a")
+            expect(new Maybe("a").orElseGet(() => undefined)).toEqual("a")
+            expect(new Maybe("a").orElseGet(() => null)).toEqual("a")
+        })
     })
 })

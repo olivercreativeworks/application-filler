@@ -44,4 +44,8 @@ export class Maybe<Value>{
     orElse<A>(x:A):A | Something<Value>{
         return this.isNothing() ? x : this.value as Something<Value>
     }
+
+    orElseGet<A>(x:() => A): A | Something<Value>{
+        return this.isNothing()? x() : this.value as Something<Value>
+    }
 }
