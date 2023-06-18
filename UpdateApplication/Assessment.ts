@@ -1,3 +1,4 @@
+import { DocumentBody } from "./GAS/DocumentBody"
 import { MyGlobals } from "./GLOBALS"
 import { Maybe } from "./Maybe"
 import { Utility } from "./Utility"
@@ -19,36 +20,20 @@ interface AssessmentFields{
 }
 
 export namespace Assessment{
-
-    export function fillIn(student: AssessmentFields, assessment:GoogleAppsScript.Document.Document):void{
-        const body = assessment.getBody()
-
-        replaceBodyText(body, 'Date[^\\t\\n]*', "Date: " + getTodaysDate())
-
-        replaceBodyText(body, 'First[^\\t\\n]*', "First Name: "+ student.firstName)
-        replaceBodyText(body, 'Last[^\\t\\n]*', "Last Name: "+ student.lastName)
-        replaceBodyText(body, 'Address[^\\t\\n]*', "Address: "+ student.address)
-        replaceBodyText(body, 'Borough[^\\t\\n]*', "Borough: "+ student.borough)
-        replaceBodyText(body, 'Council[^\\t\\n]*', "Council District #: "+ student.councilDistrict)
-
-        replaceFirstInstanceOfText(body, 'Phone[^\\t\\n]*','Phone Number: ' + student.phone)
-        
-        replaceBodyText(body, 'Email[^\\t\\n]*', "Email: "+ student.email)
-        
-        boldAssessmentResponse(body, student.isNychaResident, 'NYCHA development[^\\t\\n]*')
-
-        boldAssessmentResponse(body, student.hasOsha10Card, 'OSHA 10 card[^\\t\\n]*')
-        boldAssessmentResponse(body, student.inConstruction, 'construction-related[^\\t\\n]*')
-        
-        replaceBodyText(body, 'Which one[^\\t\\n]*', "Which one? "+ student.development)
-        
-        replaceFirstInstanceOfText(body, 'Employer[^\\t\\n]*', 'Employer: ' + student.employer)
-        replaceFirstInstanceOfText(body, 'Job[^\\t\\n]*','Job/position: ' + student.job)
-    }
     
     export function retrieve():(studentName:string) => Maybe<GoogleAppsScript.Drive.File | undefined>{
+        function getAssessments(maxNumberOfAssessmentsToGet: number = Infinity):Map<string, GoogleAppsScript.Drive.File>{
+            const assessments = MyGlobals.getAssessmentFolder().getFiles()
+            return Utility.collect(assessments, addToMap, maxNumberOfAssessmentsToGet)
+            
+            function addToMap(assessment:GoogleAppsScript.Drive.File, map:Map<string, GoogleAppsScript.Drive.File>):Map<string, GoogleAppsScript.Drive.File>{
+                return new Map(map).set(assessment.getName().toUpperCase(), assessment)
+            }
+        }
+        
         const assessments = getAssessments()
         return (studentName) => Maybe.of(assessments.get(studentName.toUpperCase()))
+
     }
 
     export function create(studentName:string):GoogleAppsScript.Drive.File {
@@ -58,45 +43,38 @@ export namespace Assessment{
         const newAssessment = assessmentTemplate.makeCopy(fileName, assessmentFolder)
         return newAssessment
     }
-}
 
-function getAssessments(maxNumberOfAssessmentsToGet: number = Infinity):Map<string, GoogleAppsScript.Drive.File>{
-    const assessments = MyGlobals.getAssessmentFolder().getFiles()
-    return Utility.collect(assessments, addToMap, maxNumberOfAssessmentsToGet)
+    export function fillIn(student: AssessmentFields, assessment:GoogleAppsScript.Document.Document):void{
+        function getTodaysDate(){
+            let date = new Date()
+            let today = `${date.getMonth()+1}/${date.getDate()}/${date.getFullYear()}`
+            return today
+        }
+        
+        const body = assessment.getBody()
+
+        body.replaceText('Date[^\\t\\n]*', "Date: " + getTodaysDate())
+
+        body.replaceText('First[^\\t\\n]*', "First Name: "+ student.firstName)
+        body.replaceText('Last[^\\t\\n]*', "Last Name: "+ student.lastName)
+        body.replaceText('Address[^\\t\\n]*', "Address: "+ student.address)
+        body.replaceText('Borough[^\\t\\n]*', "Borough: "+ student.borough)
+        body.replaceText('Council[^\\t\\n]*', "Council District #: "+ student.councilDistrict)
+
+        DocumentBody.replaceFirstInstanceOfText(body, 'Phone[^\\t\\n]*','Phone Number: ' + student.phone)
+        
+        body.replaceText('Email[^\\t\\n]*', "Email: "+ student.email)
+              
+        const yesNoMap = new Map([['Y', "Y\\s"], ["N","N\\s"]])
+        
+        Maybe.of(yesNoMap.get(student.isNychaResident)).map(textToBold => DocumentBody.bold(body, 'NYCHA development[^\\t\\n]*', textToBold,))
+        Maybe.of(yesNoMap.get(student.hasOsha10Card)).map(textToBold => DocumentBody.bold(body, 'OSHA 10 card[^\\t\\n]*', textToBold,))
+        Maybe.of(yesNoMap.get(student.inConstruction)).map(textToBold => DocumentBody.bold(body, 'construction-related[^\\t\\n]*', textToBold,))
+        
+        body.replaceText('Which one[^\\t\\n]*', "Which one? "+ student.development)
+        
+        DocumentBody.replaceFirstInstanceOfText(body, 'Employer[^\\t\\n]*', 'Employer: ' + student.employer)
+        DocumentBody.replaceFirstInstanceOfText(body, 'Job[^\\t\\n]*','Job/position: ' + student.job)
     
-    function addToMap(assessment:GoogleAppsScript.Drive.File, map:Map<string, GoogleAppsScript.Drive.File>):Map<string, GoogleAppsScript.Drive.File>{
-        return new Map(map).set(assessment.getName().toUpperCase(), assessment)
     }
-}
-
-function replaceFirstInstanceOfText(body:GoogleAppsScript.Document.Body, searchPattern:string, replacement:string):void{
-    body.findText(searchPattern).getElement().asText().replaceText(searchPattern, replacement)
-}
-
-function replaceBodyText(body:GoogleAppsScript.Document.Body, searchPattern: string, replacement: string):void{
-    body.replaceText(searchPattern, replacement)
-}
-
-function getTodaysDate(){
-    let date = new Date()
-    let today = `${date.getMonth()+1}/${date.getDate()}/${date.getFullYear()}`
-    return today
-}
-    
-function boldAssessmentResponse(body:GoogleAppsScript.Document.Body, response:string, assessmentFieldRegex:string):void{ 
-    const textToBoldDict:Record<string, string> = {'Y': "Y\\s", "N":"N\\s"}
-    const textToBold = Maybe.of(textToBoldDict[response])
-    textToBold.map(text => bold(body, assessmentFieldRegex, text))
-}
-    
-function bold(body:GoogleAppsScript.Document.Body, regex:string, textFromRegexToBold:string):void{
-    let text = body.editAsText()
-    let elementText = text.findText(regex).getElement().asText()
-    elementText.setBold(false)
-    
-    let foundText = elementText.findText(textFromRegexToBold)
-    let start = foundText?.getStartOffset()
-    let end = foundText?.getEndOffsetInclusive()
-    
-    foundText?.getElement().asText().setBold(start, end, true)
-}
+} 
