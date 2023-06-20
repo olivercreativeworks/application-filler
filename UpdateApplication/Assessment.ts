@@ -30,7 +30,7 @@ export namespace Assessment{
                 return new Map(map).set(assessment.getName().toUpperCase(), assessment)
             }
         }
-        
+
         const assessments = getAssessments()
         return (studentName) => Maybe.of(assessments.get(studentName.toUpperCase()))
 
@@ -44,7 +44,7 @@ export namespace Assessment{
         return newAssessment
     }
 
-    export function fillIn(student: AssessmentFields, assessment:GoogleAppsScript.Document.Document):void{
+    export function fillIn(responses: AssessmentFields, assessment:GoogleAppsScript.Document.Document):void{
         function getTodaysDate(){
             let date = new Date()
             let today = `${date.getMonth()+1}/${date.getDate()}/${date.getFullYear()}`
@@ -55,26 +55,26 @@ export namespace Assessment{
 
         body.replaceText('Date[^\\t\\n]*', "Date: " + getTodaysDate())
 
-        body.replaceText('First[^\\t\\n]*', "First Name: "+ student.firstName)
-        body.replaceText('Last[^\\t\\n]*', "Last Name: "+ student.lastName)
-        body.replaceText('Address[^\\t\\n]*', "Address: "+ student.address)
-        body.replaceText('Borough[^\\t\\n]*', "Borough: "+ student.borough)
-        body.replaceText('Council[^\\t\\n]*', "Council District #: "+ student.councilDistrict)
+        body.replaceText('First[^\\t\\n]*', "First Name: "+ responses.firstName)
+        body.replaceText('Last[^\\t\\n]*', "Last Name: "+ responses.lastName)
+        body.replaceText('Address[^\\t\\n]*', "Address: "+ responses.address)
+        body.replaceText('Borough[^\\t\\n]*', "Borough: "+ responses.borough)
+        body.replaceText('Council[^\\t\\n]*', "Council District #: "+ responses.councilDistrict)
 
-        DocumentBody.replaceFirstInstanceOfText(body, 'Phone[^\\t\\n]*','Phone Number: ' + student.phone)
+        DocumentBody.replaceFirstInstanceOfText(body, 'Phone[^\\t\\n]*','Phone Number: ' + responses.phone)
         
-        body.replaceText('Email[^\\t\\n]*', "Email: "+ student.email)
+        body.replaceText('Email[^\\t\\n]*', "Email: "+ responses.email)
               
         const yesNoMap = new Map([['Y', "Y\\s"], ["N","N\\s"]])
         
-        Maybe.of(yesNoMap.get(student.isNychaResident)).map(textToBold => DocumentBody.bold(body, 'NYCHA development[^\\t\\n]*', textToBold,))
-        Maybe.of(yesNoMap.get(student.hasOsha10Card)).map(textToBold => DocumentBody.bold(body, 'OSHA 10 card[^\\t\\n]*', textToBold,))
-        Maybe.of(yesNoMap.get(student.inConstruction)).map(textToBold => DocumentBody.bold(body, 'construction-related[^\\t\\n]*', textToBold,))
+        Maybe.of(yesNoMap.get(responses.isNychaResident)).map(textToBold => DocumentBody.bold(body, 'NYCHA development[^\\t\\n]*', textToBold,))
+        Maybe.of(yesNoMap.get(responses.hasOsha10Card)).map(textToBold => DocumentBody.bold(body, 'OSHA 10 card[^\\t\\n]*', textToBold,))
+        Maybe.of(yesNoMap.get(responses.inConstruction)).map(textToBold => DocumentBody.bold(body, 'construction-related[^\\t\\n]*', textToBold,))
         
-        body.replaceText('Which one[^\\t\\n]*', "Which one? "+ student.development)
+        body.replaceText('Which one[^\\t\\n]*', "Which one? "+ responses.development)
         
-        DocumentBody.replaceFirstInstanceOfText(body, 'Employer[^\\t\\n]*', 'Employer: ' + student.employer)
-        DocumentBody.replaceFirstInstanceOfText(body, 'Job[^\\t\\n]*','Job/position: ' + student.job)
+        DocumentBody.replaceFirstInstanceOfText(body, 'Employer[^\\t\\n]*', 'Employer: ' + responses.employer)
+        DocumentBody.replaceFirstInstanceOfText(body, 'Job[^\\t\\n]*','Job/position: ' + responses.job)
     
     }
 } 
