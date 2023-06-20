@@ -37,7 +37,7 @@ export class Maybe<Value>{
         return this.unsafeUnwrap()
     }
 
-    flatMap<A>(fn:(arg:Value) => Maybe<A>):Maybe<A>{
+    flatMap<A>(fn:(arg:Something<Value>) => Maybe<A>):Maybe<A>{
         return this.map(fn).join()
     }
 
