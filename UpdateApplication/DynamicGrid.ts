@@ -1,9 +1,10 @@
 import { GridTransformer } from "./GridTransformer"
 
 export type Grid<Row extends Record<string, unknown>> = Array<Array<ValueOf<Row>>>
-export type Headers<Row> = {
+export type Headers<Row extends Record<string, unknown>> = {
     [k in keyof Row] : number
 }
+
 
 type HeadersByIndex<T extends Record<string, number>> = {
     [k in keyof T as T[k]]: k
@@ -11,7 +12,7 @@ type HeadersByIndex<T extends Record<string, number>> = {
 
 type CellType<Row extends Record<string, unknown>> = Row[keyof Row]
 type ColumnHeaders<Row> = keyof Row
-type ValueOf<Type extends Record<string, unknown>> = Type[keyof Type]
+type ValueOf<Type extends Record<string | number, unknown>> = Type[keyof Type]
 
 export class DynamicGrid<Row extends Record<string,unknown>>{
     private $values: Grid<Row>
@@ -41,6 +42,24 @@ export class DynamicGrid<Row extends Record<string,unknown>>{
         return [...this.$values]
     }
 
+    updateRow<Header extends ColumnHeaders<Row>>(headers:Array<Header>, fn:(row:Row) => Partial<Row>, predicate:(arg:CellType<Row>)=> boolean = (value) => value === ""):DynamicGrid<Row>{
+        const headersSet = new Set(headers)
+        const updatedArray = this.values.map(rowArray => {
+            const updatedRowValues = fn(DynamicGrid.fromArrayToRow(rowArray, this.headersByIndex))
+            const updatedRowArray = rowArray.map((value, index) => {
+                const columnHeader = this.lookupHeader(index) as Header
+                const newValue = updatedRowValues[columnHeader]
+                return (predicate(value) && headersSet.has(columnHeader) ) ? newValue : value
+            })
+            return updatedRowArray
+        })
+        return new DynamicGrid(updatedArray as Grid<Row>, this.zeroBasedHeaderIndex, this.headersByIndex)
+    }
+
+    private lookupHeader(index:number): ColumnHeaders<Row>{
+        return (this.headersByIndex as Record<number, keyof Row>)[index]
+    }
+
     lookupCol<Header extends ColumnHeaders<Row>>(header:Header):Array<Row[Header]>{
         return this.values.map((rowArray) => rowArray[this.zeroBasedHeaderIndex[header]] as Row[Header])
     }
@@ -48,15 +67,14 @@ export class DynamicGrid<Row extends Record<string,unknown>>{
     updateCol<Header extends ColumnHeaders<Row>>(header:Header, fn:(row:Row) => Row[Header], predicate:(arg: CellType<Row>)=>boolean = (value) => value === ""):DynamicGrid<Row>{
         const updatedValues = this.values.map(rowArray => rowArray.map((value, index) => {
             return index === this.zeroBasedHeaderIndex[header] && predicate(value) ? 
-                fn(fromArrayToRow(rowArray, this.headersByIndex)) :
+                fn(DynamicGrid.fromArrayToRow(rowArray, this.headersByIndex)) :
                 value
         }))
-        const updatedGrid = GridTransformer.updateGrid(this.values, updatedValues, predicate)
-        return new DynamicGrid(updatedGrid, this.zeroBasedHeaderIndex, this.headersByIndex)
-
-        function fromArrayToRow(rowArray:Array<ValueOf<Row>>, headersByIndex: Record<number, string>):Row{
-            return Object.fromEntries(rowArray.map(($value, index) => [headersByIndex[index], $value])) as Row
-        }
+        return new DynamicGrid(updatedValues, this.zeroBasedHeaderIndex, this.headersByIndex)
+    }
+    
+    private static fromArrayToRow<A extends Record<string,unknown>>(rowArray:Array<ValueOf<A>>, headersByIndex: Record<number, string>):A{
+        return Object.fromEntries(rowArray.map(($value, index) => [headersByIndex[index], $value])) as A
     }
 
     private static createHeadersByIndex<A extends Record<string, number>>(x:A):HeadersByIndex<A>{

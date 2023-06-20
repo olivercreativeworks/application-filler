@@ -126,4 +126,78 @@ describe("Dynamic Grid", () =>{
             expect(() => DynamicGrid.fromOneBasedHeaderIndex(values, headers)).toThrowError()
         })
     })
+
+    describe("Should update specified columns in the same row", () => {
+        test("Return row without any changes", () => {
+            const values = [[""]]
+            const headers = {a:1}
+            const id = (x:unknown) =>( {a:""})
+            expect(DynamicGrid.fromOneBasedHeaderIndex(values, headers).updateRow(["a"], id).values).toEqual([[""]])
+        })
+        test("Update one row", () => {
+            const values = [[""]]
+            const headers = {a:1}
+            const id = (x:unknown) => ({a:"a"})
+            expect(DynamicGrid.fromOneBasedHeaderIndex(values, headers).updateRow(["a"], id).values).toEqual([["a"]])
+        })
+        test("Update multiple rows", () => {
+            const values = [[""], [""]]
+            const headers = {a:1}
+            const id = (x:unknown) => ({a:"a"})
+            expect(DynamicGrid.fromOneBasedHeaderIndex(values, headers).updateRow(["a"], id).values).toEqual([["a"], ["a"]])
+        })
+        test("Update multiple columns in the same row", () => {
+            const values = [["", ""]]
+            const headers = {a:1, b:2}
+            const id = (x:unknown) => ({a:"a", b:"b"})
+            expect(DynamicGrid.fromOneBasedHeaderIndex(values, headers).updateRow(["a", "b"], id).values).toEqual([["a", "b"]])
+        })
+        test("Update multiple columns in the different rows", () => {
+            const values = [["", ""], ["", ""]]
+            const headers = {a:1, b:2}
+            const id = (x:unknown) => ({a:"a", b:"b"})
+            expect(DynamicGrid.fromOneBasedHeaderIndex(values, headers).updateRow(["a", "b"], id).values).toEqual([["a", "b"], ["a", "b"]])
+        })
+        test("Update column values that match predicate", () => {
+            const values = [[""]]
+            const headers = {a:1}
+            const id = (x:unknown) => ({a:"a"})
+            const predicate = (x: unknown) => x === ""
+            expect(DynamicGrid.fromOneBasedHeaderIndex(values, headers).updateRow(["a"], id, predicate).values).toEqual([["a"]])
+        })
+        test("Do not update columns / Column value does not match predicate", () => {
+            const values = [["b"]]
+            const headers = {a:1}
+            const id = (x:unknown) => ({a:"a"})
+            const predicate = (x: unknown) => x === ""
+            expect(DynamicGrid.fromOneBasedHeaderIndex(values, headers).updateRow(["a"], id, predicate).values).toEqual([["b"]])
+        })
+        test("Update column values that match predicate / Multiple columns", () => {
+            const values = [["c", ""]]
+            const headers = {a:1, b:2}
+            const id = (x:unknown) => ({a:"a", b:"b"})
+            const predicate = (x: unknown) => x === ""
+            expect(DynamicGrid.fromOneBasedHeaderIndex(values, headers).updateRow(["a", "b"], id, predicate).values).toEqual([["c", "b"]])
+        })
+        test("Function can use the row values to determine output", () => {
+            type TestA = {a:string}
+
+            function createTestAGrid<A extends TestA>(grid:Array<Array<A[keyof A]>>, oneBasedColumnIndex:{[k in keyof A]: number}):DynamicGrid<A>{
+                return DynamicGrid.fromOneBasedHeaderIndex(grid, oneBasedColumnIndex)
+            }
+            const values = [["Hello"]]
+            const headers = {a:1}
+            const grid = createTestAGrid(values, headers)
+            const id = (x:TestA) => ({a: x.a + " World"})
+            const predicate = (x: unknown) => x === "Hello"
+            expect(grid.updateRow(["a"], id, predicate).values).toEqual([["Hello World"]])
+        })
+        test("Function should only update specified headers", () => {
+            const values = [["", "", ""]]
+            const headers = {a:1, b:2, c:3}
+            const transform = (x:unknown) => ({a:"Hello"})
+            expect(DynamicGrid.fromOneBasedHeaderIndex(values, headers).updateRow(["a"], transform).values).toEqual([["Hello", "", ""]])
+        })
+        
+    })
 })
