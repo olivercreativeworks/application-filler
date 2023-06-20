@@ -1,5 +1,6 @@
 type Nothing = null | undefined
 type Something<T> = Exclude<T, Nothing>
+export type Unwrap<T extends Maybe<unknown>> = T["value"]
 
 export class Maybe<Value>{
     value: Value
