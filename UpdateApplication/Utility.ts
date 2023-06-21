@@ -20,4 +20,8 @@ export namespace Utility{
         }
         return map
     }
+
+    export function mapObjectValues<A extends string, B, C>(obj: Record<A, B>, fn:(arg:B) => C):Record<A, C>{
+        return Object.fromEntries( Object.entries(obj).map(([k,v]) => [k, fn(v as B)]) ) as Record<A, C>
+    }
 }
