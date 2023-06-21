@@ -31,11 +31,12 @@ export class DynamicGrid<Row extends Record<string,unknown>>{
     }
 
     static of<A extends Record<string,unknown>>(values:Grid<A>, zeroBasedHeaderIndex:Headers<A>):DynamicGrid<A>{
-        if (DynamicGrid.inputsAreValid(values, zeroBasedHeaderIndex)){
+        const inputValidity = DynamicGrid.inputsAreValid(values, zeroBasedHeaderIndex)
+        if (inputValidity.valid){
             const headersByIndex = DynamicGrid.createHeadersByIndex(zeroBasedHeaderIndex)
             return new DynamicGrid(values, zeroBasedHeaderIndex, headersByIndex)
         }
-        else { DynamicGrid.throwInvalidInputsError() }
+        else { DynamicGrid.throwInvalidInputsError(inputValidity.errorMessage) }
     }
 
     get values():Grid<Row>{
@@ -82,23 +83,52 @@ export class DynamicGrid<Row extends Record<string,unknown>>{
         return Object.fromEntries(Object.entries(x).map(([header, index]) => [index, header])) as HeadersByIndex<A>
     }
 
-    private static inputsAreValid<A extends Record<string, unknown>>(values:Grid<A>, headers:Headers<A>):boolean{
-        return rowsAreSameSize(values) && thereIsAHeaderForEachColumn(values[0], headers)
+    private static inputsAreValid<A extends Record<string, unknown>>(values:Grid<A>, headers:Headers<A>):{valid:boolean, errorMessage?:string}{
+        if(rowsAreNotTheSameSize(values)){ return createResponse(false, "All of your rows need to be the same size")}
         
-        function rowsAreSameSize(x:Grid<A>):boolean{
-            const rowLengths = x.map(row => row.length)
-            return new Set(rowLengths).size === 1
+        const headerIndexValues = Object.values(headers)
+        const headerIndexesSet = new Set(headerIndexValues)
+        const firstRow = values[0]
+        
+        if(headerIndexesDoNotFallWithinColumnIndexBounds(firstRow, headerIndexesSet)){return createResponse(false, "Header indexes cannot be less than 0 or greater than the total number of columns.")}
+        if(numberOfHeadersDoNotFallWithinNumberOfColumns(firstRow, headerIndexesSet)){return createResponse(false, "There cannot be more headers than there are columns.")}
+        if(headerIndexesAreNotUnique(headerIndexValues, headerIndexesSet)){return createResponse(false, "Header indexes must be unique.")}
+        return createResponse(true) 
+                
+        function rowsAreNotTheSameSize(x:Grid<A>):boolean{
+            return !rowsAreSameSize(x)
+
+            function rowsAreSameSize(x:Grid<A>):boolean{
+                const rowLengths = x.map(row => row.length)
+                return new Set(rowLengths).size === 1
+            }
         }
-        
-        function thereIsAHeaderForEachColumn(row:Array<unknown>, headers:Headers<A>):boolean{
-            const headerIndexValues = Object.values(headers)
-            const headerIndexesSet = new Set(headerIndexValues)
+        function headerIndexesAreNotUnique(headerIndexValues:Array<number>, headerIndexesSet:Set<number>):boolean{
+            return !headerIndexesAreUnique(headerIndexValues, headerIndexesSet)
+
+            function headerIndexesAreUnique(headerIndexValues:Array<number>, headerIndexesSet:Set<number>):boolean{
+                return headerIndexValues.length === headerIndexesSet.size
+            }
+        }
+        function numberOfHeadersDoNotFallWithinNumberOfColumns(row:Array<unknown>, headerIndexesSet:Set<number>):boolean{
+            return !numberOfHeadersFallWithinNumberOfColumns(row, headerIndexesSet)
+
+            function numberOfHeadersFallWithinNumberOfColumns(row:Array<unknown>, headerIndexesSet:Set<number>):boolean{
+                return headerIndexesSet.size <= row.length && headerIndexesSet.size >= 1
+            }
+        }
+
+        function headerIndexesDoNotFallWithinColumnIndexBounds(row:Array<unknown>, headerIndexesSet:Set<number>):boolean{
+            return !headerIndexesFallWithinColumnIndexBounds(row, headerIndexesSet)
+
             
-            const headerIndexesFallWithinColumnIndexBounds = (Math.max(...headerIndexesSet) <= row.length - 1) && (Math.min(...headerIndexesSet) >= 0 )
-            const numberOfHeadersFallWithinNumberOfColumns = headerIndexesSet.size <= row.length && headerIndexesSet.size >= 1
-            const headerIndexesAreUnique = headerIndexValues.length === headerIndexesSet.size
-            
-            return headerIndexesFallWithinColumnIndexBounds && numberOfHeadersFallWithinNumberOfColumns && headerIndexesAreUnique
+            function headerIndexesFallWithinColumnIndexBounds(row:Array<unknown>, headerIndexesSet:Set<number>):boolean{
+                return (Math.max(...headerIndexesSet) <= row.length - 1) && (Math.min(...headerIndexesSet) >= 0 )
+            }
+        }
+
+        function createResponse(valid:boolean, errorMessage?:string): {valid:boolean, errorMessage?:string}{
+            return {valid, errorMessage}
         }
     }
 
