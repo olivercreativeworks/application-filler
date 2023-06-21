@@ -226,4 +226,35 @@ describe("Dynamic Grid", () =>{
         })
         
     })
+
+    describe("Should create a Dynamic Grid from an object", () => {
+        test("Create a single cell / One key, one value", ()=>{
+            const obj = {a:"100"}
+            expect(DynamicGrid.fromObject(obj).values).toEqual(DynamicGrid.fromOneBasedHeaderIndex([["100"]], {a:1}).values)
+        })
+        test("Create one row with multiple cells / Multiple keys, one value each", ()=>{
+            const obj = {a:"100", b:"200"}
+            expect(DynamicGrid.fromObject(obj).values).toEqual(DynamicGrid.fromOneBasedHeaderIndex([["100", "200"]], {a:1, b:2}).values)
+        })
+        test("Create multiple rows with one cell each / One key, multiple values", () => {
+            const obj = {a:["100", "101"]}
+            expect(DynamicGrid.fromObject(obj).values).toEqual(DynamicGrid.fromOneBasedHeaderIndex([["100"], ["101"]], {a:1}).values)
+        })
+        test("Create multiple rows with multiple cells each / Multiple key, multiple values", () => {
+            const obj = {a:["100", "101"], b:["200", "201"]}
+            expect(DynamicGrid.fromObject(obj).values).toEqual(DynamicGrid.fromOneBasedHeaderIndex([["100", "200"], ["101", "201"]], {a:1, b:2}).values)
+        })
+        test("Throws error on invalid input / Rows are different lengths", () => {
+            const obj = {a:["100"], b:["200", "201"]}
+            expect(() => DynamicGrid.fromObject(obj)).toThrowError()
+            const obj2 = {a:["100", "101"], b:["200"]}
+            expect(() => DynamicGrid.fromObject(obj2)).toThrowError()
+        })
+        test("Throws error on invalid input / Array and non array entries", () => {
+            const obj = {a:"100", b:["200", "201"]}
+            expect(() => DynamicGrid.fromObject(obj)).toThrowError()
+            const obj2 = {a:["100", "101"], b:"200"}
+            expect(() => DynamicGrid.fromObject(obj2)).toThrowError()
+        })
+    })
 })
