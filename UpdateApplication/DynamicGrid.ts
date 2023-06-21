@@ -46,33 +46,36 @@ export class DynamicGrid<Row extends Record<string,unknown>>{
     }
     
     static fromObject<A extends Record<string, unknown>>(x:A):DynamicGrid<A>{
-        const objectValues = Object.values(x)
+        const grid = createNewGrid(x) as Array<Array<A[keyof A]>>
         const headers = Object.fromEntries(Object.keys(x).map((a,i) => [a, i])) as Record<keyof typeof x, number>
-
-        if(Array.isArray(objectValues[0])){
-            const allValuesArrays = objectValues.reduce((allValuesAreArrays:boolean, currentValue:unknown) => {
-                return allValuesAreArrays && Array.isArray(currentValue)
-            }, true)
-            if (!allValuesArrays) { DynamicGrid.throwInvalidInputsError("All values must either be arrays or non arrays")}
-            const grid = (objectValues as Array<Array<keyof A>>).reduce((prev:Array<Array<keyof A>>, curr:Array<keyof A>, index:number, values:Array<unknown>) => {
-                if (index === 0) { return curr.map(val => [val]) }
-                return curr.length === prev.length ? prev.map((row, rowIndex) => row.concat(curr[rowIndex]) ) : DynamicGrid.throwInvalidInputsError("All of your rows need to be the same size")
-            }, [[]]) as Array<Array<A[keyof A]>>
-            
-            return DynamicGrid.of(grid, headers)
-        }
-        const grid = objectValues.reduce((prev:Array<Array<keyof A>>, curr:unknown, index:number, values:Array<unknown>) => {
-            if (index === 0) {
-                return Array.isArray(curr) ? curr.map(val => [val]) : prev.map(arr => arr.concat(curr as keyof A)) 
-            }
-            if(Array.isArray(prev[0]) && Array.isArray(curr)){ DynamicGrid.throwInvalidInputsError("All entries must be ")}
-            if(Array.isArray(curr)){
-                return curr.length === prev.length ? prev.map((row, rowIndex) => row.concat(curr[rowIndex]) ) : DynamicGrid.throwInvalidInputsError("All of your rows need to be the same size")
-            }
-            return prev.map(arr => arr.concat(curr as keyof A))
-        }, [[]]) as Array<Array<A[keyof A]>>
-
         return DynamicGrid.of(grid, headers)
+        
+        function createNewGrid(x:Record<string, unknown>):Array<Array<unknown>>{
+            const objectValues = Object.values(x)
+            return allValuesAreArrays(objectValues) ? createNewGridFromArray(objectValues) : createNewGridFromNonArray(objectValues)
+        }
+
+        function createNewGridFromNonArray(x:Array<unknown>):Array<Array<unknown>>{
+            return x.reduce((prev:Array<Array<keyof A>>, curr:unknown) => {
+                return Array.isArray(curr) ? DynamicGrid.throwInvalidInputsError("You cannot use an array as a cell value.") : prev.map(arr => arr.concat(curr as keyof A))}, [[]])
+        }
+
+        function createNewGridFromArray(x:Array<Array<unknown>>):Array<Array<unknown>>{
+            const gridTemplate = Array.from(x[0], () => [])
+            return x.reduce(concatColumn, gridTemplate) 
+        }
+
+        function concatColumn(grid: Array<Array<unknown>>, newColumn:Array<unknown>):Array<Array<unknown>>{
+            return newColumn.length === grid.length ? grid.map((gridRow, rowIndex) => gridRow.concat(newColumn[rowIndex])) : DynamicGrid.throwRowsNeedToBeSameSize()
+        }
+
+        function allValuesAreArrays(x:Array<unknown>):x is Array<Array<unknown>>{
+            return x.reduce((allValuesAreArrays:boolean, currentValue:unknown) => allValuesAreArrays && Array.isArray(currentValue), Array.isArray(x[0]))
+        }
+    }
+
+    private static throwRowsNeedToBeSameSize():never{
+        return DynamicGrid.throwInvalidInputsError("All of your rows need to be the same size")
     }
 
     updateRow<Header extends ColumnHeaders<Row>>(headers:Array<Header>, fn:(row:Row) => Partial<Row>, predicate:(arg:CellType<Row>, row:Row)=> boolean = (value) => value === ""):DynamicGrid<Row>{
