@@ -198,6 +198,32 @@ describe("Dynamic Grid", () =>{
             const transform = (x:unknown) => ({a:"Hello"})
             expect(DynamicGrid.fromOneBasedHeaderIndex(values, headers).updateRow(["a"], transform).values).toEqual([["Hello", "", ""]])
         })
+        describe("Predicate can reference any column in the row", () => {
+            type TestA = {a:string, b:string}
+
+            function createTestAGrid<A extends TestA>(grid:Array<Array<A[keyof A]>>, oneBasedColumnIndex:{[k in keyof A]: number}):DynamicGrid<A>{
+                return DynamicGrid.fromOneBasedHeaderIndex(grid, oneBasedColumnIndex)
+            }
+            const values = [["Hello", "World"]]
+            const headers = {a:1, b:2}
+            const grid = createTestAGrid(values, headers)
+            const id = (x:TestA) => ({a: x.b, b: x.a})
+            
+            test("Should only transform value in column A / Predicate true for A, false for B", () => {
+                const trueForA = (x: unknown, row:TestA) => x === "Hello" && row.b === "World"
+                expect(grid.updateRow(["a", "b"], id, trueForA).values).toEqual([["World", "World"]])
+            })
+
+            test("Should transform column A and B / Predicate is true based on row values", () => {
+                const truePredicate = (x:unknown, row:TestA) => row.a === "Hello" && row.b === "World"
+                expect(grid.updateRow(["a", "b"], id, truePredicate).values).toEqual([["World", "Hello"]])
+            })
+            
+            test("Should not transform any values / Predicate is false based on row values", () => {
+                const falsePredicate = (x:unknown, row:TestA) => row.a === "World" && row.b === "Hello"
+                expect(grid.updateRow(["a", "b"], id, falsePredicate).values).toEqual([["Hello", "World"]])
+            })
+        })
         
     })
 })

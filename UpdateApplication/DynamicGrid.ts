@@ -42,14 +42,15 @@ export class DynamicGrid<Row extends Record<string,unknown>>{
         return [...this.$values]
     }
 
-    updateRow<Header extends ColumnHeaders<Row>>(headers:Array<Header>, fn:(row:Row) => Partial<Row>, predicate:(arg:CellType<Row>)=> boolean = (value) => value === ""):DynamicGrid<Row>{
+    updateRow<Header extends ColumnHeaders<Row>>(headers:Array<Header>, fn:(row:Row) => Partial<Row>, predicate:(arg:CellType<Row>, row:Row)=> boolean = (value) => value === ""):DynamicGrid<Row>{
         const headersSet = new Set(headers)
         const updatedArray = this.values.map(rowArray => {
-            const updatedRowValues = fn(DynamicGrid.fromArrayToRow(rowArray, this.headersByIndex))
+            const row = DynamicGrid.fromArrayToRow(rowArray, this.headersByIndex)
+            const updatedRowValues = fn(row)
             const updatedRowArray = rowArray.map((value, index) => {
                 const columnHeader = this.lookupHeader(index) as Header
                 const newValue = updatedRowValues[columnHeader]
-                return (predicate(value) && headersSet.has(columnHeader) ) ? newValue : value
+                return (predicate(value, row) && headersSet.has(columnHeader) ) ? newValue : value
             })
             return updatedRowArray
         })
