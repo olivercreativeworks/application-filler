@@ -24,4 +24,12 @@ export namespace Utility{
     export function mapObjectValues<A extends string, B, C>(obj: Record<A, B>, fn:(arg:B) => C):Record<A, C>{
         return Object.fromEntries( Object.entries(obj).map(([k,v]) => [k, fn(v as B)]) ) as Record<A, C>
     }
+
+    export function appendColumn<A>(currentGrid:Array<Array<A>>, additionalColumns:Array<Array<A>>):Array<Array<A>>{
+        return currentGrid.length === additionalColumns.length ? currentGrid.map((row, i) => row.concat(additionalColumns[i])) : throwRowsNeedToBeSameSize()
+
+        function throwRowsNeedToBeSameSize():never{
+            throw new Error("Row lengths need to be the same")
+        }
+    }
 }

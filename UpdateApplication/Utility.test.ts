@@ -1,7 +1,7 @@
 import { Utility } from "./Utility"
-const loop = Utility.loop
-const collect = Utility.collect
 describe("Collect / Should collect iterator values into a map", () => {
+    const collect = Utility.collect
+    
     const myIterator = (numberOfIterations:number) => ({
         currentIteration: 0,
         maxIterations: numberOfIterations,
@@ -73,6 +73,7 @@ describe("Collect / Should collect iterator values into a map", () => {
 })
 
 describe("Loop", () => {
+    const loop = Utility.loop
 
     const myIterator = (numberOfIterations:number) => ({
         currentIteration: 0,
@@ -147,4 +148,45 @@ describe("Loop", () => {
             expect(sum).toHaveBeenCalledTimes(5)
         })
     })
+})
+
+describe("Append Columns", () => {
+    const appendColumn = Utility.appendColumn
+
+    describe("Should append a column to an existing grid.", () => {
+        test("Add a column to a single cell row", () => {
+            const currentGrid = [["a"]]
+            const additionalColumn = [["b"]]
+            expect(appendColumn(currentGrid, additionalColumn)).toEqual([["a", "b"]])
+        })
+
+        test("Add a column to a grid with multiple rows", () => {
+            const currentGrid = [["a"], ["1"]]
+            const additionalColumn = [["b"], ["2"]]
+            expect(appendColumn(currentGrid, additionalColumn)).toEqual([["a","b"], ["1","2"]])
+        })
+
+        test("Add a column to a grid with multiple columns", () => {
+            const currentGrid = [["a", "b"]]
+            const additionalColumn = [["c"]]
+            expect(appendColumn(currentGrid, additionalColumn)).toEqual([["a", "b", "c"]])
+        })
+
+        test("Add multiple columns to a single cell row", () => {
+            const currentGrid = [["a"]]
+            const additionalColumn = [["b", "c"]]
+            expect(appendColumn(currentGrid, additionalColumn)).toEqual([["a", "b", "c"]])
+        })
+        test("Throw error if number of rows do not match", () => {
+            const currentGrid = [["a"], ["1"]]
+            const additionalColumn = [["b"]]
+            expect(() => appendColumn(currentGrid, additionalColumn)).toThrowError()
+            
+            const secondGrid = [["a"]]
+            const secondAdditionalColumn = [["b"], ["2"]]
+            expect(() => appendColumn(secondGrid, secondAdditionalColumn)).toThrowError()
+        })
+    })
+
+    
 })
