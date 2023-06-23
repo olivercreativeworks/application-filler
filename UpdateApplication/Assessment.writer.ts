@@ -5,18 +5,14 @@ import { Maybe } from "./Maybe"
 
 export namespace AssessmentWriter{    
     export function fetchOrCreateAssessment<A>(fetchFn:(fileName:string) => Maybe<A> | Maybe<A | undefined>, createFn:(fileName:string) => A):(fileName:string) => A{
-        return (fileName) =>  fetchFn(fileName).orElseGet(() => createFn(fileName))
-    }
-    
-    function $fetchOrCreateRichTextAssessment():(fileName:string) => MyGlobals.RichText{
-        const documentGetter = fetchOrCreateAssessment(Assessment.retrieve(), Assessment.create)
-        return fullName =>  createRichText("LINK", documentGetter(fullName)?.getUrl())
+        const documentGetter = Maybe.getThisOrGetThat(fetchFn, createFn)
+        return (fileName) =>  documentGetter(fileName) as A
     }
 
     export function updateAssessments(studentData: DynamicGrid<MyGlobals.Student>):DynamicGrid<MyGlobals.Student>{
-        const fetcher = $fetchOrCreateRichTextAssessment()
+        const fetcher = fetchOrCreateAssessment(Assessment.retrieve(), Assessment.create)
         const updatedData = studentData
-            .updateCol("assessment", student => fetcher(student.fullName), textIsEmptyString)
+            .updateCol("assessment", student => createRichText("LINK", fetcher(student.fullName)?.getUrl()), textIsEmptyString)
             .updateCol("assessment", populateAssessmentFields, hasUrl)
         return updatedData
     }
