@@ -1,4 +1,5 @@
 import { GridTransformer } from "./GridTransformer"
+import { Utility } from "./Utility"
 
 export type Grid<Row extends Record<string, unknown>> = Array<Array<ValueOf<Row>>>
 export type Headers<Row extends Record<string, unknown>> = {
@@ -80,11 +81,12 @@ export class DynamicGrid<Row extends Record<string,unknown>>{
 
     updateRow<Header extends ColumnHeaders<Row>>(headers:Array<Header>, fn:(row:Row) => Partial<Row>, predicate:(arg:CellType<Row>, row:Row)=> boolean = (value) => value === ""):DynamicGrid<Row>{
         const headersSet = new Set(headers)
+        const memoizedFn = Utility.memoize(fn)
         const updatedArray = this.values.map(rowArray => {
             const row = DynamicGrid.fromArrayToRow(rowArray, this.headersByIndex)
             const updatedRowArray = rowArray.map((value, index) => {
                 const columnHeader = this.lookupHeader(index) as Header
-                return (predicate(value, row) && headersSet.has(columnHeader) ) ? fn(row)[columnHeader] : value
+                return (headersSet.has(columnHeader) && predicate(value, row)) ? memoizedFn(row)[columnHeader] : value
             })
             return updatedRowArray
         })
