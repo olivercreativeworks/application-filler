@@ -21,7 +21,7 @@ interface AssessmentFields{
 
 export namespace Assessment{
     
-    export function retrieve():{get: (studentName:string) => Maybe<GoogleAppsScript.Drive.File | undefined>}{
+    export function retrieve():(studentName:string) => Maybe<GoogleAppsScript.Drive.File | undefined>{
         function getAssessments(maxNumberOfAssessmentsToGet: number = Infinity):Map<string, GoogleAppsScript.Drive.File>{
             const assessments = MyGlobals.getAssessmentFolder().getFiles()
             return Utility.collect(assessments, addToMap, maxNumberOfAssessmentsToGet)
@@ -32,7 +32,7 @@ export namespace Assessment{
         }
 
         const assessments = getAssessments()
-        return {get: (studentName) => Maybe.of(assessments.get(studentName.toUpperCase()))}
+        return (studentName) => Maybe.of(assessments.get(studentName.toUpperCase()))
 
     }
 

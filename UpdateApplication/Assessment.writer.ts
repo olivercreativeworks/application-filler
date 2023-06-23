@@ -1,16 +1,22 @@
 import { Assessment } from "./Assessment"
 import { DynamicGrid } from "./DynamicGrid"
 import { MyGlobals } from "./GLOBALS"
+import { Maybe } from "./Maybe"
 
 export namespace AssessmentWriter{    
-    function fetchOrCreateAssessment():(student:{fullName: string}) => MyGlobals.RichText{
-        const assessments = Assessment.retrieve()
-        return (student) => createRichText("LINK", assessments.get(student.fullName).orElseGet(() => Assessment.create(student.fullName)).getUrl())
+    export function fetchOrCreateAssessment<A>(fetchFn:(fileName:string) => Maybe<A> | Maybe<A | undefined>, createFn:(fileName:string) => A):(fileName:string) => A{
+        return (fileName) =>  fetchFn(fileName).orElseGet(() => createFn(fileName))
+    }
+    
+    function $fetchOrCreateRichTextAssessment():(fileName:string) => MyGlobals.RichText{
+        const documentGetter = fetchOrCreateAssessment(Assessment.retrieve(), Assessment.create)
+        return fullName =>  createRichText("LINK", documentGetter(fullName)?.getUrl())
     }
 
     export function updateAssessments(studentData: DynamicGrid<MyGlobals.Student>):DynamicGrid<MyGlobals.Student>{
+        const fetcher = $fetchOrCreateRichTextAssessment()
         const updatedData = studentData
-            .updateCol("assessment", fetchOrCreateAssessment(), textIsEmptyString)
+            .updateCol("assessment", student => fetcher(student.fullName), textIsEmptyString)
             .updateCol("assessment", populateAssessmentFields, hasUrl)
         return updatedData
     }
