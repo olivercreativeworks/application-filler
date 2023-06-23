@@ -82,11 +82,9 @@ export class DynamicGrid<Row extends Record<string,unknown>>{
         const headersSet = new Set(headers)
         const updatedArray = this.values.map(rowArray => {
             const row = DynamicGrid.fromArrayToRow(rowArray, this.headersByIndex)
-            const updatedRowValues = fn(row)
             const updatedRowArray = rowArray.map((value, index) => {
                 const columnHeader = this.lookupHeader(index) as Header
-                const newValue = updatedRowValues[columnHeader]
-                return (predicate(value, row) && headersSet.has(columnHeader) ) ? newValue : value
+                return (predicate(value, row) && headersSet.has(columnHeader) ) ? fn(row)[columnHeader] : value
             })
             return updatedRowArray
         })
@@ -101,9 +99,9 @@ export class DynamicGrid<Row extends Record<string,unknown>>{
         return this.values.map((rowArray) => rowArray[this.zeroBasedHeaderIndex[header]] as Row[Header])
     }
 
-    updateCol<Header extends ColumnHeaders<Row>>(header:Header, fn:(row:Row) => Row[Header], predicate:(arg: CellType<Row>)=>boolean = (value) => value === ""):DynamicGrid<Row>{
+    updateCol<Header extends ColumnHeaders<Row>>(header:Header, fn:(row:Row) => Row[Header], predicate:(arg: Row[typeof header])=>boolean = (value) => value === ""):DynamicGrid<Row>{
         const updatedValues = this.values.map(rowArray => rowArray.map((value, index) => {
-            return index === this.zeroBasedHeaderIndex[header] && predicate(value) ? 
+            return index === this.zeroBasedHeaderIndex[header] && predicate(value as Row[typeof header]) ? 
                 fn(DynamicGrid.fromArrayToRow(rowArray, this.headersByIndex)) :
                 value
         }))

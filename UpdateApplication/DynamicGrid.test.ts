@@ -224,6 +224,22 @@ describe("Dynamic Grid", () =>{
                 expect(grid.updateRow(["a", "b"], id, falsePredicate).values).toEqual([["Hello", "World"]])
             })
         })
+        describe("Should not call transformation function if predicate is false", () => {
+            type TestA = {a:string, b:string}
+            
+            function createTestAGrid<A extends TestA>(grid:Array<Array<A[keyof A]>>, oneBasedColumnIndex:{[k in keyof A]: number}):DynamicGrid<A>{
+                return DynamicGrid.fromOneBasedHeaderIndex(grid, oneBasedColumnIndex)
+            }
+            const values = [["Hello", "World"]]
+            const headers = {a:1, b:2}
+            const grid = createTestAGrid(values, headers)
+            const id = jest.fn((x:TestA) => ({a: x.b, b: x.a}))
+            
+            const falsePredicate = (x:unknown, row:TestA) => row.a === "World" && row.b === "Hello"
+            grid.updateRow(["a", "b"], id, falsePredicate)
+            expect(id).toHaveBeenCalledTimes(0)
+
+        })
         
     })
 
