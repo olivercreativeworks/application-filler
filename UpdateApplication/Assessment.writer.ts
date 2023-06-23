@@ -1,7 +1,6 @@
 import { Assessment } from "./Assessment"
 import { DynamicGrid } from "./DynamicGrid"
 import { MyGlobals } from "./GLOBALS"
-import { Utility } from "./Utility"
 
 export namespace AssessmentWriter{    
     function fetchOrCreateAssessment():(student:{fullName: string}) => MyGlobals.RichText{
@@ -12,15 +11,17 @@ export namespace AssessmentWriter{
     export function updateAssessments(studentData: DynamicGrid<MyGlobals.Student>):DynamicGrid<MyGlobals.Student>{
         const updatedData = studentData
             .updateCol("assessment", fetchOrCreateAssessment(), textIsEmptyString)
-            .updateCol("assessment", fillAssessment, hasUrl)
+            .updateCol("assessment", populateAssessmentFields, hasUrl)
         return updatedData
     }
 
-    function fillAssessment(richTextStudent:MyGlobals.Student):MyGlobals.RichText{
+    function populateAssessmentFields(student:MyGlobals.Student):MyGlobals.RichText{
+        return fillAssessment(student, student => Assessment.fillIn(student, DocumentApp.openByUrl(student.assessment.url)))
+    }
+
+    export function fillAssessment(richTextStudent:MyGlobals.Student, fillFn:(student:MyGlobals.Student & {assessment:{url:string}}) => void):MyGlobals.RichText{
         if(hasUrl(richTextStudent.assessment)){
-            const assessment = DocumentApp.openByUrl(richTextStudent.assessment.url)
-            const student = Utility.mapObjectValues( richTextStudent, (richText) => typeof richText === "string" ? richText : richText.text)
-            Assessment.fillIn(student, assessment)
+            fillFn(richTextStudent as MyGlobals.Student & {assessment:{url:string}})
         }
         return richTextStudent.assessment
     }
