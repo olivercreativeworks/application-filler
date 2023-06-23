@@ -25,11 +25,24 @@ export namespace Utility{
         return Object.fromEntries( Object.entries(obj).map(([k,v]) => [k, fn(v as B)]) ) as Record<A, C>
     }
 
-    export function appendColumn<A>(currentGrid:Array<Array<A>>, additionalColumns:Array<Array<A>>):Array<Array<A>>{
-        return currentGrid.length === additionalColumns.length ? currentGrid.map((row, i) => row.concat(additionalColumns[i])) : throwRowsNeedToBeSameSize()
+    export function appendColumn<A, B>(currentGrid:Array<Array<A>>, additionalColumns:Array<Array<B>>):Array<Array<A | B>>{
+        return currentGrid.length === additionalColumns.length ? currentGrid.map((row, i) => Array<A|B>().concat(row, additionalColumns[i])) : throwRowsNeedToBeSameSize()
 
         function throwRowsNeedToBeSameSize():never{
             throw new Error("Row lengths need to be the same")
+        }
+    }
+
+    export function memoize<A, B>(fn:(arg:A) => B): (arg:A) => B{
+        const memo: Map<A, B> = new Map()
+        return (arg) => {
+            const storedResult = memo.get(arg)
+            if (storedResult === undefined){
+                const computedResult = fn(arg)
+                memo.set(arg, computedResult)
+                return computedResult 
+            }
+            return storedResult
         }
     }
 }

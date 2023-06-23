@@ -187,6 +187,35 @@ describe("Append Columns", () => {
             expect(() => appendColumn(secondGrid, secondAdditionalColumn)).toThrowError()
         })
     })
+})
 
-    
+describe("Memoize", () => {
+    const addOne = (num:number) => num+1
+    test("Should return function result", () => {
+        const memoizedFn = Utility.memoize(addOne)
+        expect(memoizedFn(1)).toEqual(2)
+    })
+    describe("Should call input function one time per unique argument", () => {
+        test("One unique argument input multiple times", () => {
+            const jestAddOne = jest.fn(addOne)
+            const memoizedFn = Utility.memoize(jestAddOne)
+            const args = [1, 1]
+            args.map(memoizedFn)
+            expect(jestAddOne).toHaveBeenCalledTimes(1)
+        })
+        test("Two unique arguments", () => {
+            const jestAddOne = jest.fn(addOne)
+            const memoizedFn = Utility.memoize(jestAddOne)
+            const args = [1, 2]
+            args.map(memoizedFn)
+            expect(jestAddOne).toHaveBeenCalledTimes(2)
+        })
+        test("Two unique arguments input multiple times", () => {
+            const jestAddOne = jest.fn(addOne)
+            const memoizedFn = Utility.memoize(jestAddOne)
+            const args = [1, 2, 2, 2, 1, 1]
+            args.map(memoizedFn)
+            expect(jestAddOne).toHaveBeenCalledTimes(2)
+        })
+    })
 })
