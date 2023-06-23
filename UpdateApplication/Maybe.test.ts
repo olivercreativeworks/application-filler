@@ -88,4 +88,28 @@ describe("Maybe class", () => {
             expect(new Maybe("a").orElseGet(() => null)).toEqual("a")
         })
     })
+    describe("Maybe get this or get that", () => {
+        const fetchFn = (fileName:string) => fileName === "a" ? Maybe.of("fetched: " + fileName) : Maybe.of(undefined)
+        const createFn = (fileName:string) => "created: " + fileName
+        test("Should fetch existing assessment", () => {
+            const name = "a"
+            expect(Maybe.getThisOrGetThat(fetchFn, createFn)(name)).toEqual("fetched: a")
+        })
+        test("Should create new assessment / assessment does not exist", () => {
+            const name = "b"
+            expect(Maybe.getThisOrGetThat(fetchFn, createFn)(name)).toEqual("created: b")
+        })
+        test("Should not create new assessment / assessment already exists", () => {
+            const name = "a"
+            const jestCreateFn = jest.fn(createFn)
+            expect(Maybe.getThisOrGetThat(fetchFn, jestCreateFn)(name)).toEqual("fetched: a")
+            expect(jestCreateFn).toHaveBeenCalledTimes(0)
+        })
+        test("Should try to fetch before creating a new assessment / assessment does not exist", () => {
+            const name = "b"
+            const jestFetchFn = jest.fn(fetchFn)
+            expect(Maybe.getThisOrGetThat(jestFetchFn, createFn)(name)).toEqual("created: b")
+            expect(jestFetchFn).toHaveBeenCalledTimes(1)
+        })
+    })
 })
