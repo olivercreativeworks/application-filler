@@ -33,13 +33,14 @@ export namespace Utility{
         }
     }
 
-    export function memoize<A, B>(fn:(arg:A) => B): (arg:A) => B{
-        const memo: Map<A, B> = new Map()
-        return (arg) => {
-            const storedResult = memo.get(arg)
+    export function memoize<A, B>(fn:(...args:Array<A>) => B): (...args:Array<A>) => B{
+        const memo: Map<string, B> = new Map()
+        return (...args) => {
+            const argsAsString = JSON.stringify(args)
+            const storedResult = memo.get(argsAsString)
             if (storedResult === undefined){
-                const computedResult = fn(arg)
-                memo.set(arg, computedResult)
+                const computedResult = fn(...args)
+                memo.set(argsAsString, computedResult)
                 return computedResult 
             }
             return storedResult

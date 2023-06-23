@@ -200,22 +200,32 @@ describe("Memoize", () => {
             const jestAddOne = jest.fn(addOne)
             const memoizedFn = Utility.memoize(jestAddOne)
             const args = [1, 1]
-            args.map(memoizedFn)
+            args.map(x => memoizedFn(x))
             expect(jestAddOne).toHaveBeenCalledTimes(1)
         })
         test("Two unique arguments", () => {
             const jestAddOne = jest.fn(addOne)
             const memoizedFn = Utility.memoize(jestAddOne)
             const args = [1, 2]
-            args.map(memoizedFn)
+            args.map(x => memoizedFn(x))
             expect(jestAddOne).toHaveBeenCalledTimes(2)
         })
         test("Two unique arguments input multiple times", () => {
             const jestAddOne = jest.fn(addOne)
             const memoizedFn = Utility.memoize(jestAddOne)
             const args = [1, 2, 2, 2, 1, 1]
-            args.map(memoizedFn)
+            args.map(x => memoizedFn(x))
             expect(jestAddOne).toHaveBeenCalledTimes(2)
+        })
+    })
+    describe("Should accept more than one argument at a time", () => {
+        test("Accepts two arguments at the same time", () => {
+            const add = (num1:number, num2:number) => num1 + num2
+            
+            const jestAdd = jest.fn(add)
+            const memoizedFn = Utility.memoize(jestAdd)
+            expect(memoizedFn(1,1)).toEqual(2)
+            expect(jestAdd).toHaveBeenCalledTimes(1)
         })
     })
 })
