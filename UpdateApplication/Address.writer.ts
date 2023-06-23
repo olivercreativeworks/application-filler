@@ -25,7 +25,7 @@ export namespace AddressWriter{
 
         function addressFieldsNeedToBeUpdated(): (_:any, row:A) => boolean{
             const memoizedFn = Utility.memoize(addressFieldsMissingData)
-            return (_, row) => memoizedFn(_, row)
+            return (_, row) => memoizedFn(row)
         }
     }
     
