@@ -29,7 +29,7 @@ export namespace AddressWriter{
         }
     }
     
-    export function getAddressFieldData(address: string):AddressFields{    
+    function getAddressFieldData(address: string):AddressFields{    
         const geoclientData = Address.getProcessedGeoclientData(address)
         const developmentData = geoclientData.flatMap(data => Address.getProcessedNychaResidentialData(data.bin))
     
