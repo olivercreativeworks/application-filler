@@ -1,6 +1,8 @@
 import { Address } from "./Address"
 import { DynamicGrid } from "./DynamicGrid"
+import { MyGlobals } from "./GLOBALS"
 import { Maybe } from "./Maybe"
+import { Utility } from "./Utility"
 
 export type AddressFields = {
     address:string
@@ -11,14 +13,23 @@ export type AddressFields = {
     development:string
 }
 
-export namespace AddressWriter{
-    export function updateAddressFields(addressData:DynamicGrid<AddressFields>, updateFn: (arg: AddressFields) => AddressFields = (arg) => getAddressFieldData(arg.address)):DynamicGrid<AddressFields>{        
+export namespace AddressWriter{     
+    export function updateStudentAddressFields(studentData:DynamicGrid<MyGlobals.Student>):DynamicGrid<MyGlobals.Student>{
+        return updateAddressFields(studentData, student => getAddressFieldData(student.address) )
+    }
+
+    export function updateAddressFields<A extends AddressFields>(addressData: DynamicGrid<A>, updateFn: (arg:A) => Partial<A>):DynamicGrid<A>{        
         const updatedData = addressData
-            .updateRow(["formattedAddress", "borough", "councilDistrict", "development", "isNychaResident"], updateFn, (_, row) => addressFieldsMissingData(row))
+            .updateRow(["formattedAddress", "borough", "councilDistrict", "development", "isNychaResident"], updateFn, addressFieldsNeedToBeUpdated())
         return updatedData
+
+        function addressFieldsNeedToBeUpdated(): (_:any, row:A) => boolean{
+            const memoizedFn = Utility.memoize(addressFieldsMissingData)
+            return (_, row) => memoizedFn(_, row)
+        }
     }
     
-    function getAddressFieldData(address: string):AddressFields{    
+    export function getAddressFieldData(address: string):AddressFields{    
         const geoclientData = Address.getProcessedGeoclientData(address)
         const developmentData = geoclientData.flatMap(data => Address.getProcessedNychaResidentialData(data.bin))
     
@@ -36,17 +47,13 @@ export namespace AddressWriter{
         return hasAddress(row) && isMissingAddressData(row)
     
         function hasAddress(row:{address:string}):boolean{
-            return isNotEmpty(row.address)
+            return row.address !== ""
         }
         function isMissingAddressData(row:AddressFields):boolean{
             return isEmpty(row.borough) || isEmpty(row.councilDistrict) || isEmpty(row.development) || isEmpty(row.isNychaResident)
         }
         function isEmpty<A>(value:A):boolean{
             return Maybe.of(value).map($value => $value === "").orElse(true)
-        }
-        
-        function isNotEmpty<A>(value:A):boolean{
-            return !isEmpty(value)
         }
     }
     
