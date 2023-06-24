@@ -5,50 +5,49 @@ import { Maybe } from "./Maybe"
 
 export namespace AssessmentWriter{  
     interface AssessmentObj<A>{
-        fill:(student:MyGlobals.Student & {assessment:{url:string}}) => void
+        fill:(student:MyGlobals.Student & {assessment:{url:string}}, assessment:A) => void
         getUrl:(fileName:string) => string
+        getAssessment:(url:string) => A
     }
 
-    function getAssessmentObj():AssessmentObj<GoogleAppsScript.Drive.File>{
-        const fetchOrCreateAssessment = Maybe.getThisOrGetThat(Assessment.retrieve(), Assessment.create)
-        return {
-            fill: (student:MyGlobals.Student & {assessment:{url:string}}) => Assessment.fillIn(student, DocumentApp.openByUrl(student.assessment.url)),
-            getUrl: (fullName:string) => fetchOrCreateAssessment(fullName).getUrl()
-        }
-    }
-
-    export function updateAssessments<A>(studentData: DynamicGrid<MyGlobals.Student>, assessmentObj:AssessmentObj<A> = getAssessmentObj()):DynamicGrid<MyGlobals.Student>{
-        const updatedData = studentData
-            .updateCol("assessment", createAssessmentRichText(x => assessmentObj.getUrl(x)), textIsEmptyString)
-            .updateCol("assessment", populateAssessmentFields(assessmentObj.fill), hasUrl)
-        return updatedData
-    }
-
-    function createAssessmentRichText<A>(getUrl:(arg:string) => string):(student:MyGlobals.Student) => MyGlobals.RichText{
-        return (student) => student.fullName === "" ? student.assessment : createRichText("LINK", getUrl(student.fullName) )
-    }
-
-    function populateAssessmentFields(fillFn:(arg:MyGlobals.Student & {assessment:{url:string}}) => void): (student:MyGlobals.Student) => MyGlobals.RichText{
-        return student => fillAssessment(student, fillFn)
-    }
-
-    export function fillAssessment(richTextStudent:MyGlobals.Student, fillFn:(student:MyGlobals.Student & {assessment:{url:string}}) => void):MyGlobals.RichText{
-        if(hasUrl(richTextStudent.assessment)){
-            fillFn(richTextStudent as MyGlobals.Student & {assessment:{url:string}})
-        }
-        return richTextStudent.assessment
-    }
-    
     function hasUrl(richText:MyGlobals.RichText): richText is {text:string, url:string}{
         return typeof richText.url === "string"
     }
-    
-    function textIsEmptyString(richText: MyGlobals.RichText):richText is {text:""}{
-        return richText.text === ""
+
+    export function getAssessmentObj():AssessmentObj<GoogleAppsScript.Document.Document>{
+        const fetchOrCreateAssessment = Maybe.getThisOrGetThat(Assessment.retrieve(), Assessment.create)
+        return {
+            fill: (student:MyGlobals.Student & {assessment:{url:string}}, assessment:GoogleAppsScript.Document.Document) => Assessment.fillIn(student, assessment),
+            getUrl: (fullName:string) => fetchOrCreateAssessment(fullName).getUrl(),
+            getAssessment: (url:string) => DocumentApp.openByUrl(url)
+        }
     }
-    
-    function createRichText(text:string, url?:string):MyGlobals.RichText{
-        return {text, url}
+
+    export function updateAssessments<A>(studentData: DynamicGrid<MyGlobals.Student>, assessmentObj:AssessmentObj<A>):DynamicGrid<MyGlobals.Student>{
+        function textIsEmptyString(richText: MyGlobals.RichText):richText is {text:""}{
+            return richText.text === ""
+        }
+        
+        const updatedData = studentData
+            .updateCol("assessment", createAssessmentRichText(x => assessmentObj.getUrl(x)), textIsEmptyString)
+            .updateCol("assessment", student => populateAssessmentFields(student, assessmentObj.fill, assessmentObj.getAssessment), hasUrl)
+        return updatedData 
     }
+
+    function createAssessmentRichText(getUrl:(arg:string) => string):(student:MyGlobals.Student) => MyGlobals.RichText{
+        function createRichText(text:string, url?:string):MyGlobals.RichText{
+            return {text, url}
+        }
+        return (student) => student.fullName === "" ? student.assessment : createRichText("LINK", getUrl(student.fullName) )
+
+    }
+
+    function populateAssessmentFields<A>(richTextStudent:MyGlobals.Student, fillFn:(student:MyGlobals.Student & {assessment:{url:string}}, assessment:A) => void, getAssessmentFn:(url:string) => A):MyGlobals.RichText{
+        if(hasUrl(richTextStudent.assessment)){
+            const assessment = getAssessmentFn(richTextStudent.assessment.url)
+            fillFn(richTextStudent as MyGlobals.Student & {assessment:{url:string}}, assessment)
+        }
+        return richTextStudent.assessment
+    }  
 }
 
