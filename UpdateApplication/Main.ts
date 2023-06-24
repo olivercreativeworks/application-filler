@@ -8,5 +8,5 @@ function main(){
     const studentData = MyGlobals.getStudentData()
     Maybe.of(studentData)
         .map(AddressWriter.updateStudentAddressFields)
-        .map(AssessmentWriter.updateAssessments)
+        .map(student => AssessmentWriter.updateAssessments(student, AssessmentWriter.getAssessmentObj()))
 }
