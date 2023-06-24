@@ -3,22 +3,33 @@ import { DynamicGrid } from "./DynamicGrid"
 import { MyGlobals } from "./GLOBALS"
 import { Maybe } from "./Maybe"
 
-export namespace AssessmentWriter{    
-    export function fetchOrCreateAssessment<A>(fetchFn:(fileName:string) => Maybe<A> | Maybe<A | undefined>, createFn:(fileName:string) => A):(fileName:string) => A{
-        const documentGetter = Maybe.getThisOrGetThat(fetchFn, createFn)
-        return (fileName) =>  documentGetter(fileName) as A
+export namespace AssessmentWriter{  
+    interface AssessmentObj<A>{
+        fill:(student:MyGlobals.Student & {assessment:{url:string}}) => void
+        getUrl:(fileName:string) => string
     }
 
-    export function updateAssessments(studentData: DynamicGrid<MyGlobals.Student>):DynamicGrid<MyGlobals.Student>{
-        const fetcher = fetchOrCreateAssessment(Assessment.retrieve(), Assessment.create)
+    function getAssessmentObj():AssessmentObj<GoogleAppsScript.Drive.File>{
+        const fetchOrCreateAssessment = Maybe.getThisOrGetThat(Assessment.retrieve(), Assessment.create)
+        return {
+            fill: (student:MyGlobals.Student & {assessment:{url:string}}) => Assessment.fillIn(student, DocumentApp.openByUrl(student.assessment.url)),
+            getUrl: (fullName:string) => fetchOrCreateAssessment(fullName).getUrl()
+        }
+    }
+
+    export function updateAssessments<A>(studentData: DynamicGrid<MyGlobals.Student>, assessmentObj:AssessmentObj<A> = getAssessmentObj()):DynamicGrid<MyGlobals.Student>{
         const updatedData = studentData
-            .updateCol("assessment", student => createRichText("LINK", fetcher(student.fullName)?.getUrl()), textIsEmptyString)
-            .updateCol("assessment", populateAssessmentFields, hasUrl)
+            .updateCol("assessment", createAssessmentRichText(x => assessmentObj.getUrl(x)), textIsEmptyString)
+            .updateCol("assessment", populateAssessmentFields(assessmentObj.fill), hasUrl)
         return updatedData
     }
 
-    function populateAssessmentFields(student:MyGlobals.Student):MyGlobals.RichText{
-        return fillAssessment(student, student => Assessment.fillIn(student, DocumentApp.openByUrl(student.assessment.url)))
+    function createAssessmentRichText<A>(getUrl:(arg:string) => string):(student:MyGlobals.Student) => MyGlobals.RichText{
+        return (student) => student.fullName === "" ? student.assessment : createRichText("LINK", getUrl(student.fullName) )
+    }
+
+    function populateAssessmentFields(fillFn:(arg:MyGlobals.Student & {assessment:{url:string}}) => void): (student:MyGlobals.Student) => MyGlobals.RichText{
+        return student => fillAssessment(student, fillFn)
     }
 
     export function fillAssessment(richTextStudent:MyGlobals.Student, fillFn:(student:MyGlobals.Student & {assessment:{url:string}}) => void):MyGlobals.RichText{
