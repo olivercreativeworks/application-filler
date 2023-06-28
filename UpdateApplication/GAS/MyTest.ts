@@ -5,6 +5,9 @@ import { Utility } from "../Utility"
 // And it can be good for testing for any of your code code that makes use of Google Apps Script classes/methods
 // (Since I can't figure out how to get Jest into Google Apps Script)
 
+// Used this as guidance for refactoring error handling
+// https://humanwhocodes.com/blog/2009/03/10/the-art-of-throwing-javascript-errors-part-2/
+
 export class MyTest{
 
     static describe(description: string, fn:() => void, loggingFn:(message:string) => void = console.log):void{
@@ -33,29 +36,41 @@ export class MyTest{
         try{
             testFunction()
         }
-        catch(err:any){
-            return err.testFailed ? MyTest.buildTestFailedMessage(testName, err) : MyTest.buildErrorMessage(testName, err)
+        catch(err){
+            if (err instanceof FailedTestError){
+                return MyTest.buildFailedTestMessage(testName, err.message)
+            }
+            else{
+                return MyTest.buildErrorMessage(testName, err)
+            }
         }
-        
     }
-    static buildTestFailedMessage(testName:string, testResults: {testFailed:true, gotResult:unknown, expectedResult:unknown}):string{
-        return `FAILED\nTest:${testName}\nGot:${testResults.gotResult}\nExpected:${testResults.expectedResult}`
+    static buildFailedTestMessage(testName:string, errorMessage:string):string{
+        return `FAILED\nTest:${testName}\n${errorMessage}`
     }
 
-    static buildErrorMessage(testName:string, err: Error):string{
-        return `ERROR\n${testName}\n${err}`
+    static buildErrorMessage(testName:string, errorMessage: unknown):string{
+        return `ERROR\n${testName}\n${errorMessage}`
     }
     
-    private static throwTestFailed(gotResult:unknown, expectedResult:unknown):never{
-        throw {testFailed: true, gotResult, expectedResult}
+    private static throwFailedTest(gotResult:unknown, expectedResult:unknown):never{
+        throw new FailedTestError(gotResult, expectedResult)
     }
 
     private static testEquality<A,B>(gotResult:A, expectedResult:B): undefined{
-        return Utility.areEqual(gotResult, expectedResult) ? undefined : MyTest.throwTestFailed(gotResult, expectedResult)
+        return Utility.areEqual(gotResult, expectedResult) ? undefined : MyTest.throwFailedTest(gotResult, expectedResult)
     }
 }
-  
-  
+
+export class FailedTestError implements Error{
+    name: string
+    message: string
+    stack?: string | undefined
+    constructor(gotResult:unknown, expectedResult:unknown){
+        this.message = `Got:${gotResult}\nExpected:${expectedResult}`
+        this.name = "Test Failed"
+    }
+}  
 
 
 // export namespace TestingGas{
