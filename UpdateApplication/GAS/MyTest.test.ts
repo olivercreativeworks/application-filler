@@ -16,7 +16,7 @@ describe("MyTest", () => {
         })
         describe("Should return an error message if input function throws", () => {
             test("FailedTestError", () => {
-                expect(MyTest.test(testName, () => { throw new MyTest.FailedTestError(4, 3) })).toEqual(MyTest.buildFailedTestMessage(testName, new MyTest.FailedTestError(4, 3).message))
+                expect(MyTest.test(testName, () => { throw new MyTest.FailedTestError(4, 3) })).toMatch(MyTest.buildFailedTestMessage(testName, new MyTest.FailedTestError(4, 3).message))
             })
             test("Error", () => {
                 const genericError = new Error("This is a generic error")
@@ -58,7 +58,7 @@ describe("MyTest", () => {
             expect(MyTest.test(testName, () => MyTest.expect(3).toEqual(3))).toBeUndefined()
         })
         test("Should return failedTestMessage if expect statement is false (and throws a FailedTestError as a result)", () => {
-            expect(MyTest.test(testName, () => MyTest.expect(3).toEqual(4))).toEqual(MyTest.buildFailedTestMessage(testName, new MyTest.FailedTestError(3, 4).message))
+            expect(MyTest.test(testName, () => MyTest.expect(3).toEqual(4))).toMatch(MyTest.buildFailedTestMessage(testName, new MyTest.FailedTestError(3, 4).message))
         })
         test("Should return errorMessage if expect statement throws an error", () => {
             const genericError = new Error("This is a generic error")

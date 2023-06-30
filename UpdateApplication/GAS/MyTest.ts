@@ -29,7 +29,7 @@ export namespace MyTest{
         }
         catch(err){
             if (err instanceof FailedTestError){
-                return buildFailedTestMessage(testName, err.message)
+                return buildFailedTestMessage(testName, `${(err.stack as string)}`.replace(`${err.name}:`, "").trim())
             }
             else{
                 return buildErrorMessage(testName, err)
@@ -63,7 +63,7 @@ export namespace MyTest{
             Error.call(this)
             Error.captureStackTrace(this, this.constructor)
             this.message = `Got:${gotResult}\nExpected:${expectedResult}`
-            this.name = "Test Failed"
+            this.name = "FailedTest"
         }
     }  
 }
