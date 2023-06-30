@@ -5,7 +5,6 @@ export namespace MyTest{
     export function describe(description: string, fn:() => void, loggingFn:(message:string) => void = console.log):void{
         loggingFn(description)
         fn()
-        loggingFn("________________________")
     }
     
     export function test(testName:string, fn:() => void, loggingFn:(message:string) => void = console.log):void | string{
@@ -60,6 +59,9 @@ export namespace MyTest{
         message: string
         stack?: string | undefined
         constructor(gotResult:unknown, expectedResult:unknown){
+            //https://stackoverflow.com/questions/8458984/how-do-i-get-a-correct-backtrace-for-a-custom-error-class-in-nodejs
+            Error.call(this)
+            Error.captureStackTrace(this, this.constructor)
             this.message = `Got:${gotResult}\nExpected:${expectedResult}`
             this.name = "Test Failed"
         }
