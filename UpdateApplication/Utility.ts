@@ -54,6 +54,8 @@ export namespace Utility{
             return bothValuesAreUndefined(x, y)    
         else if (Array.isArray(x) && Array.isArray(y)) 
             return arrayElementsToJson(x) === arrayElementsToJson(y)
+        else if (isMap(x) &&  isMap(y))
+            return mapToJson(x) === mapToJson(y)
         else if (isObject(x) && isObject(y)) 
             return objectToJson(x) === objectToJson(y)
         return JSON.stringify(x) === JSON.stringify(y)
@@ -63,6 +65,10 @@ export namespace Utility{
         }
         function bothValuesAreUndefined(x:unknown, y:unknown):boolean{
             return (x === undefined) && (y === undefined)
+        }
+
+        function mapToJson(x:Map<unknown, unknown>):string{
+            return arrayElementsToJson(Array.from(x.entries()).sort())
         }
         
         function objectToJson(x:object):string{
@@ -82,6 +88,10 @@ export namespace Utility{
     
         function isObject(x:unknown): x is object{
             return typeof x === "object"
+        }
+
+        function isMap(x:unknown): x is Map<unknown, unknown>{
+            return x instanceof Map
         }
     }
 

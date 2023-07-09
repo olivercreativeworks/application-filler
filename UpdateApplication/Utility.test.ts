@@ -391,6 +391,58 @@ describe("Testing Equality" , () => {
             })
         })
     })
+
+    describe("Maps", () => {
+        describe("Should return false", () => {
+            test("Maps with different keys and values", () => {
+                expect(areEqual(new Map([[1,2]]), new Map([[3,4]]))).toEqual(false)
+            })
+            test("Maps with different keys", () => {
+                expect(areEqual(new Map([[1,2]]), new Map([[3,2]]))).toEqual(false)
+            })
+            test("Maps with different values", () => {
+                expect(areEqual(new Map([[1,2]]), new Map([[1,3]]))).toEqual(false)
+            })
+            test("Maps are different sizes", () => {
+                expect(areEqual(new Map([[1,2], [3,4]]), new Map([[1,2]]))).toEqual(false)
+                expect(areEqual(new Map([[1,2]]), new Map([[1,2], [3,4]]))).toEqual(false)
+            })
+            test("Keys are the same but Values are both the different arrays", () => {
+                expect(areEqual(new Map([[1, [1, 2, 3]]]), new Map([[1, [4, 5, 6]]]))).toEqual(false)
+            })
+            test("Keys are the same but Values are both the different objects", () => {
+                expect(areEqual(new Map([[1, {"a":"b"}]]), new Map([[1, {"c":"d"}]]))).toEqual(false)
+            })
+        })
+        describe("Should return true", () => {
+            test("Maps have same keys and values", () => {
+                expect(areEqual(new Map([[1,2]]), new Map([[1,2]]))).toEqual(true)
+            })
+            test("Entries are the same, but they are inserted in a different order", () => {
+                expect(areEqual(new Map([[1,2], [3,4]]), new Map([[3,4], [1,2]]))).toEqual(true)
+            })
+            test("Values are both the same array", () => {
+                expect(areEqual(new Map([[1, [1, 2, 3]]]), new Map([[1, [1, 2, 3]]]))).toEqual(true)
+            })
+            test("Values are both the same object", () => {
+                expect(areEqual(new Map([[1, {"a":"b"}]]), new Map([[1, {"a":"b"}]]))).toEqual(true)
+            })
+            test("Values are both undefined", () => {
+                expect(areEqual(new Map([[1, undefined]]), new Map([[1, undefined]]))).toEqual(true)
+            })
+            test("Values are both null", () => {
+                expect(areEqual(new Map([[1, null]]), new Map([[1, null]]))).toEqual(true)
+            })
+            test("One value is undefined and the other is null", () => {
+                // I'm choosing to treat these as the same value, because, practically speaking, they are the same in this case
+                // If you try to get an key with an undefined value, the output value will be null, 
+                // This means calling myMap.get(a) where myMap = new Map([["a", null]]) or where myMap = new Map([["a", undefined]]) 
+                // will produce the same value (null)
+                expect(areEqual(new Map([[1, undefined]]), new Map([[1, null]]))).toEqual(true)
+            })
+        })
+    })
+
     describe("Objects", () => {
         describe("Should return true", () => {
             test("Empty object", () => {
