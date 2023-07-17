@@ -62,7 +62,7 @@ export namespace MyTest{
             //https://stackoverflow.com/questions/8458984/how-do-i-get-a-correct-backtrace-for-a-custom-error-class-in-nodejs
             Error.call(this)
             Error.captureStackTrace(this, this.constructor)
-            this.message = `Got:${gotResult}\nExpected:${expectedResult}`
+            this.message = `Got:${JSON.stringify(gotResult)}\nExpected:${JSON.stringify(expectedResult)}`
             this.name = "FailedTest"
         }
     }  
