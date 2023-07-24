@@ -1,4 +1,4 @@
-import { Credentials } from "../Credentials"
+import { Credentials } from "../System/Credentials"
 
 export namespace NycOpenData{
     export interface RawNychaResidentialData{
