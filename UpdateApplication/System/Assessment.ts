@@ -22,28 +22,16 @@ interface AssessmentFields{
 export namespace Assessment{
     
     export function retrieve():(studentName:string) => Maybe<GoogleAppsScript.Drive.File | undefined>{
-        function getAssessments(maxNumberOfAssessmentsToGet: number = Infinity):Map<string, GoogleAppsScript.Drive.File>{
-            const assessments = MyGlobals.getAssessmentFolder().getFiles()
-            return Utility.collect(assessments, addToMap, maxNumberOfAssessmentsToGet)
-            
-            function addToMap(assessment:GoogleAppsScript.Drive.File, map:Map<string, GoogleAppsScript.Drive.File>):Map<string, GoogleAppsScript.Drive.File>{
-                return new Map(map).set(assessment.getName().toUpperCase(), assessment)
-            }
-        }
-
-        const assessments = getAssessments()
-        return (studentName) => Maybe.of(assessments.get(studentName.toUpperCase()))
-
+        const assessments = MyGlobals.getFilesFrom("assessment")
+        return (studentName) => assessments.get(studentName)
     }
 
     export function create(studentName:string):GoogleAppsScript.Drive.File {
-        const assessmentTemplate = MyGlobals.getAssessmentTemplate()
-        const assessmentFolder = MyGlobals.getAssessmentFolder()
+        const template = MyGlobals.getAssessmentTemplate()
         const fileName = studentName.toUpperCase()
-        const newAssessment = assessmentTemplate.makeCopy(fileName, assessmentFolder)
-        return newAssessment
+        const assessmentFolder = MyGlobals.getFolder("assessment")
+        return template.makeCopy(fileName, assessmentFolder)
     }
-
     export function fillIn(responses: AssessmentFields, assessment:GoogleAppsScript.Document.Document):void{
         function getTodaysDate(){
             let date = new Date()
@@ -74,7 +62,7 @@ export namespace Assessment{
         body.replaceText('Which one[^\\t\\n]*', "Which one? "+ responses.development)
         
         DocumentBody.replaceFirstInstanceOfText(body, 'Employer[^\\t\\n]*', 'Employer: ' + responses.employer)
-        DocumentBody.replaceFirstInstanceOfText(body, 'Job[^\\t\\n]*','Job/position: ' + responses.job)
+        DocumentBody.replaceFirstInstanceOfText(body, 'Job[^\\t\\n]*', 'Job/position: ' + responses.job)
     
     }
 } 

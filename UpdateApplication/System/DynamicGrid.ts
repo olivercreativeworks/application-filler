@@ -79,7 +79,7 @@ export class DynamicGrid<Row extends Record<string,unknown>>{
         return DynamicGrid.throwInvalidInputsError("All of your rows need to be the same size")
     }
 
-    updateRow<Header extends ColumnHeaders<Row>>(headers:Array<Header>, fn:(row:Row) => Partial<Row>, predicate:(arg:CellType<Row>, row:Row)=> boolean = (value) => value === ""):DynamicGrid<Row>{
+    updateRow<Header extends ColumnHeaders<Row>>(headers:Array<Header>, fn:(row:Row) => Partial<Row>, predicate:(arg:CellType<Row>, row:Row)=> boolean = _ => true):DynamicGrid<Row>{
         const headersSet = new Set(headers)
         const memoizedFn = Utility.memoize(fn)
         const updatedArray = this.values.map(rowArray => {
@@ -101,7 +101,7 @@ export class DynamicGrid<Row extends Record<string,unknown>>{
         return this.values.map((rowArray) => rowArray[this.zeroBasedHeaderIndex[header]] as Row[Header])
     }
 
-    updateCol<Header extends ColumnHeaders<Row>>(header:Header, fn:(row:Row) => Row[Header], predicate:(arg: Row[typeof header])=>boolean = (value) => value === ""):DynamicGrid<Row>{
+    updateCol<Header extends ColumnHeaders<Row>>(header:Header, fn:(row:Row) => Row[Header], predicate:(arg: Row[typeof header])=>boolean = _ => true):DynamicGrid<Row>{
         const updatedValues = this.values.map(rowArray => rowArray.map((value, index) => {
             return index === this.zeroBasedHeaderIndex[header] && predicate(value as Row[typeof header]) ? 
                 fn(DynamicGrid.fromArrayToRow(rowArray, this.headersByIndex)) :

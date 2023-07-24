@@ -46,10 +46,10 @@ describe("Dynamic Grid", () =>{
             const name =createNameGrid(data, headers)
     
             const fn = () => "UPDATED FIRST NAME"
-            expect(name.updateCol("firstName", fn).values).toEqual([["UPDATED FIRST NAME", "lastName1", ""], ["a", "b", "c"], ["UPDATED FIRST NAME", "d", "e"]])
+            expect(name.updateCol("firstName", fn).values).toEqual([["UPDATED FIRST NAME", "lastName1", ""], ["UPDATED FIRST NAME", "b", "c"], ["UPDATED FIRST NAME", "d", "e"]])
             
             const fn2 = (name: Name) => name.firstName + " BOO " + name.lastName
-            expect(name.updateCol("fullName", fn2).values).toEqual([["", "lastName1", " BOO lastName1"], ["a", "b", "c"], ["", "d", "e"]])
+            expect(name.updateCol("fullName", fn2).values).toEqual([["", "lastName1", " BOO lastName1"], ["a", "b", "a BOO b"], ["", "d", " BOO d"]])
         })
     })
 

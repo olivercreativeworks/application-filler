@@ -13,8 +13,8 @@ export class Maybe<Value>{
         return new Maybe(x)
     }
 
-    static getThisOrGetThat<A, B>(maybeFn: (arg:A)=>Maybe<B>, defaultFn:(arg:A) => B):(arg:A) => B{
-        return arg => maybeFn(arg).orElseGet(() => defaultFn(arg))
+    static getThisOrGetThat<A, B>(maybeFn: (arg:A)=>Maybe<B>, defaultFn:(arg:A) => B):(arg:A) => Something<B>{
+        return arg => maybeFn(arg).orElseGet(() => defaultFn(arg)) as Something<B>
     }
 
     private static ignoreOperationIfNullValue(target: Maybe<unknown>, propertyKey: string, descriptor: PropertyDescriptor){

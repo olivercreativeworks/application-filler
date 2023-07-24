@@ -1,5 +1,5 @@
-import { Geoclient } from "./API/Geoclient"
-import { NycOpenData } from "./API/NycOpenData"
+import { Geoclient } from "../API/Geoclient"
+import { NycOpenData } from "../API/NycOpenData"
 import { Maybe } from "./Maybe"
 
 interface ProcessedGeoclientData{
