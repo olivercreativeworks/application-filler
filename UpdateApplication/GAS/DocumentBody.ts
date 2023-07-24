@@ -1,6 +1,6 @@
 export namespace DocumentBody{
     export function replaceFirstInstanceOfText(body:GoogleAppsScript.Document.Body, searchPattern:string, replacement:string):void{
-        body.findText(searchPattern).getElement().asText().replaceText(searchPattern, replacement)
+        body.findText(searchPattern)?.getElement().asText().replaceText(searchPattern, replacement)
     }
     
     export function replaceText(body:GoogleAppsScript.Document.Body, searchPattern: string, replacement: string):void{
