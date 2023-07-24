@@ -6,10 +6,10 @@ type Range = GoogleAppsScript.Document.Range
 
 export namespace GoogleNamedRange{
 
-    export function create(document: Document, rangeName:string): {addElements:(...elements:Array<Element>) => NamedRange, addElementsBetween:(startElement:Element, endElementInclusive:Element) => NamedRange} {
+    export function create(documentToCreateRangeIn: Document, rangeName:string): {addElements:(...elements:Array<Element>) => NamedRange, addElementsBetween:(startElement:Element, endElementInclusive:Element) => NamedRange} {
         return {
-            addElements: (...elements:Array<Element>) => createNamedRange(document, rangeName, addElementsToRangeBuilder, ...elements),
-            addElementsBetween:(startElement: Element, endElementInclusive: Element) => createNamedRange(document, rangeName, addElementsBetweenToRangeBuilder, startElement, endElementInclusive)
+            addElements: (...elements:Array<Element>) => createNamedRange(documentToCreateRangeIn, rangeName, addElementsToRangeBuilder, ...elements),
+            addElementsBetween:(startElement: Element, endElementInclusive: Element) => createNamedRange(documentToCreateRangeIn, rangeName, addElementsBetweenToRangeBuilder, startElement, endElementInclusive)
         }
         
         function addElementsToRangeBuilder(rangeBuilder:RangeBuilder, ...elements:Array<Element>):RangeBuilder{
@@ -25,6 +25,7 @@ export namespace GoogleNamedRange{
         }
     
         type RangeBuilderFn = (rangeBuilder:RangeBuilder, ...elements:Array<Element>) => RangeBuilder
+        
         function createNamedRange(document:Document, rangeName:string, rangeBuilderFn:RangeBuilderFn, ...elements:Array<Element>): NamedRange{
             const rangeBuilder = document.newRange()
             const updatedRangeBuilder = rangeBuilderFn(rangeBuilder, ...elements) 
